@@ -1,36 +1,43 @@
 # Graph-based Semi-Supervised Learning Algorithms
 
-This repository contains implementations of graph-based semi-supervised learning algorithms in Python.
+Este repositorio contiene implementaciones de algoritmos de aprendizaje semi-supervisado basados en grafos en Python.
 
-GSSL.py is organized as follows:
+GSSL.py está organizado de la siguiente manera:
 
-## `rgcli` Function
+## Función `rgcli`
 
-The `rgcli` function performs the Robust Graph that Considers Labeled Instances (RGCLI) algorithm. It constructs a graph based on the input data and performs consistency-based labeling. The method is based on the paper:
+La función `rgcli` realiza el algoritmo de Robust Graph that Considers Labeled Instances (RGCLI). 
+Construye un grafo basado en los datos de entrada y realiza etiquetado basado en la consistencia. 
+El método se basa en el siguiente artículo:
 
-- **Title:** RGCLI: Robust Graph that Considers Labeled Instances for Semi-Supervised Learning
-- **Authors:** Lilian Berton, Thiago de Paulo Faleiros, Alan Valejo, Jorge Valverde-Rebaza, and Alneu de Andrade Lopes
-- **Published in:** Neurocomputing, Volume 226, Pages 238-248, 2017.
-- **Available at:** [Neurocomputing](https://www.sciencedirect.com/science/article/pii/S0925231216314680)
+- **Título:** RGCLI: Robust Graph that Considers Labeled Instances for Semi-Supervised Learning
+- **Autores:** Lilian Berton, Thiago de Paulo Faleiros, Alan Valejo, Jorge Valverde-Rebaza y Alneu de Andrade Lopes
+- **Publicado en:** Neurocomputing, Volume 226, Pages 238-248, 2017.
+- **Disponible en:**  [Neurocomputing](https://www.sciencedirect.com/science/article/pii/S0925231216314680)
 - **DOI:** [10.1016/j.neucom.2016.11.053](https://doi.org/10.1016/j.neucom.2016.11.053)
 
-## `llgcl` Function
+## Función `llgcl`
 
-The `llgcl` function performs label propagation using the Learning with Local and Global Consistency (LLGC) algorithm. It propagates labels through the graph constructed by the RGCLI algorithm. The method is based on the paper:
+La función `llgcl` realiza la propagación de etiquetas utilizando el algoritmo de Learning with local and global consistency (LLGC). 
+Propaga etiquetas a través del grafo construido por el algoritmo RGCLI (o cualquier otro grafo). 
+El método se basa en el siguiente artículo:
 
-- **Title:** Learning with local and global consistency
-- **Authors:** Dengyong Zhou, Olivier Bousquet, Thomas Lal, Jason Weston, and Bernhard Schölkopf
-- **Published in:** Advances in Neural Information Processing Systems, Volume 16, 2003.
+- **Título:** Learning with local and global consistency
+- **Autores:** Dengyong Zhou, Olivier Bousquet, Thomas Lal, Jason Weston y Bernhard Schölkopf
+- **Publicado en:** Advances in Neural Information Processing Systems, Volume 16, 2003.
 
-## `llgcl_dataset_order` Function
+## Función `llgcl_dataset_order`
 
-The `llgcl_dataset_order` function orders the dataset separating labeled and unlabeled instances. According to the "Learning with Local and Global Consistency" paper, the first "l" instances correspond to labeled points, where x_i for i<l, with l being the number of labeled instances.
+La función `llgcl_dataset_order` ordena el conjunto de datos separando las instancias etiquetadas y no etiquetadas. 
+Según el artículo "Aprendizaje con Consistencia Local y Global", las primeras "l" instancias corresponden a puntos 
+etiquetados, donde x_i para i<l, siendo "l" el número de instancias etiquetadas.
 
-## `GSSLTransductive` Class
+## Clase `GSSLTransductive`
 
-The `GSSLTransductive` class implements a Graph-based Semi-Supervised Learning Algorithm in transductive mode.
+La clase `GSSLTransductive` implementa un algoritmo de aprendizaje semi-supervisado basado en grafos en modo transductivo.
 
-## `GSSLInductive` Class
+## Clase `GSSLInductive`
 
-The `GSSLInductive` class implements a Graph-based Semi-Supervised Learning Algorithm in inductive mode.
+La clase `GSSLInductive` implementa un algoritmo de aprendizaje semi-supervisado basado en grafos en modo inductivo.
+
 
