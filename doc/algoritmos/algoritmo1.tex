@@ -1,0 +1,15 @@
+\begin{algorithm}[H]
+\label{alg1}
+\SetAlgoLined
+\medskip
+\begin{enumerate}
+    \item Elegir una estructura de red $\mathcal{G}$ sobre $\mathbf{V}$, normalmente vacía. Establecer la puntuación máxima inicial: $Score_{max} = Score_{\mathcal{G}}$.
+    \item Repetir los siguientes pasos mientras $Score_{max}$ siga aumentando:
+    \begin{enumerate}
+        \item Calcular las puntuaciones para todas las posibles redes modificadas $\mathcal{G}^{*}$ que se pueden obtener añadiendo, eliminando o reorientando un solo eje de $\mathcal{G}$ sin que se producan ciclos.
+        \item Si para alguna de las redes modificadas $\mathcal{G}^{*}$ se cumple que $Score_{G^{*}} > Score_{\mathcal{G}}$, establecer $G = G^{*}$ y $Score_{max} = Score_{G^{*}}$.
+    \end{enumerate}
+    \item Devolver el DAG $\mathcal{G}$.
+\end{enumerate}
+ \caption{Algoritmo \textit{Hill-Climbing} (HC)}
+\end{algorithm}

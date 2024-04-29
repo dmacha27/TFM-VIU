@@ -1,0 +1,193 @@
+% INTRODUCCIÓN
+
+\cleardoublepage
+
+\chapter{Introducción}
+\label{introduccion}
+
+El aprendizaje automático o \textit{machine learning} como disciplina de la inteligencia artificial resulta ser uno de los campos más cotizados y que despierta más interés en prácticamente cualquier aplicación (investigación, automatización, sistemas de ayuda, detección...). Existe una división muy clara del aprendizaje automático que consta de: aprendizaje supervisado y el no supervisado. Pero existe otra división que no suele mencionarse, y que puede ser muy beneficiosa, este es el aprendizaje semi-supervisado.
+
+De forma resumida, el aprendizaje supervisado trata de aprender de datos de los que se sabe lo que representan para después poder inferir este conocimiento para nuevos datos (por ejemplo, dadas las características de una flor, se intenta predecir de qué clase concreta es), el aprendizaje no supervisado trata de aprender de datos de los que \textbf{no} se sabe lo que representan, se utiliza en tareas en las que es necesario realizar agrupaciones o divisiones en base a las similitudes/disimilitudes de los ejemplos (por ejemplo, podría distinguir entre animales que tienen plumaje de los que no sin tener el conocimiento de qué animales son concretamente). En el caso del aprendizaje supervisado, el etiquetado de los datos suele ser un proceso costoso (es posible imaginar, por ejemplo, la cantidad de tiempo y recursos que podría suponer el etiquetado masivo de millones de muestras de posibles cánceres). En la realidad, la mayor parte de los datos no están etiquetados. Ante esta necesidad aparece el aprendizaje semi-supervisado, que se encuentra a caballo entre el supervisado y no supervisado y que permite aprovechar los escasos datos etiquetados para inferir su conocimiento a los no etiquetados.
+
+
+\section{Conceptos teóricos}
+\label{conceptos-teoricos}
+
+En esta sección se expondrán los conceptos teóricos fundamentales del proyecto, los cuales abarcan el campo del aprendizaje automático, con un enfoque particular en el \destacado{aprendizaje semi-supervisado}.
+
+\medskip
+
+\subsection{Aprendizaje automático}
+
+El aprendizaje automático (\textit{machine
+learning}) según~\cite{intelligent:ml} es una rama de la Inteligencia Artificial y se trata de una técnica de análisis de datos que enseña a las computadoras a aprender de la \textbf{experiencia} (como los humanos). Para llevar a cabo este proceso, el aprendizaje automático requiere de una amplia cantidad de datos, o los necesarios para el problema específico en cuestión. Estos datos son procesados mediante algoritmos, los cuales se alimentan de ejemplos (también conocidos como instancias o prototipos). A través de estos ejemplos, los algoritmos tienen la capacidad de generalizar comportamientos ocultos.
+
+Estos algoritmos mencionados mejoran su rendimiento iterativamente y de forma automática durante su entrenamiento e incluso también durante su aprovechamiento/explotación. El aprendizaje automático ha adquirido una gran relevancia en una amplia variedad de áreas como la visión artificial, automoción, detección de anomalías o automatización, entre otras. El aprendizaje automático generalmente se clasifica en tres tipos: aprendizaje supervisado, aprendizaje no supervisado y aprendizaje por refuerzo. Sin embargo, ha surgido una nueva disciplina que se sitúa entre el aprendizaje supervisado y el no supervisado, utilizando tanto datos etiquetados como no etiquetados durante el proceso de entrenamiento~\cite{vanEngelen2020}.
+
+En la figura~\ref{fig:figuras/taxonomia.png} se presenta una clasificación del aprendizaje automático.
+
+\imagen{figuras/taxonomia.png}{Clasificación de aprendizaje automático}{Clasificación de aprendizaje automático, basado en~\cite{neova:taxonomy}.}{1}
+
+\subsection{Aprendizaje supervisado}
+\label{aprendizaje-supervisado}
+
+Los algoritmos de aprendizaje supervisado utilizan datos etiquetados durante su proceso de entrenamiento~\cite{david:sl}. Un ejemplo popular de datos etiquetados podría ser un conjunto flores de iris y las posibles etiquetas podrían ser: setosa, versicolor y virginica. Estos datos estarán formados por un conjunto de características (en el caso de las flores de iris podrían ser la longitud y ancho del sépalo y del pétalo). Estas características podrían ser categóricas, continuas o binarias~\cite{salim:sl}.
+
+
+Es común que antes del entrenamiento, estos datos sean particionados en:
+conjunto de entrenamiento, conjunto de test y conjunto de validación. De forma
+resumida, el conjunto de entrenamiento serán los datos que utilice el propio
+algoritmo para aprender y generalizar los comportamientos ocultos de los mismos.
+El conjunto de validación se utilizará para tener un control de que el modelo
+está generalizando y no sobreajustando (memorizando los datos) y también para
+decidir cuando finalizar el entrenamiento. Por último, el conjunto de test sirve
+para estimar el rendimiento real que podrá tener el modelo en explotación
+~\cite{enwiki:conjuntos}. En la figura~\ref{fig:figuras/AprendizajeSupervisado.PNG}
+puede visualizarse el funcionamiento general.
+
+\imagen{figuras/AprendizajeSupervisado.PNG}{Funcionamiento general del aprendizaje supervisado}{Funcionamiento general del aprendizaje supervisado, basado en~\cite{salim:sl}.}{1}
+
+El aprendizaje supervisado está altamente influenciado por esto. Por un lado, si
+el valor a predecir es uno entre un conjunto finito, el modelo será de
+\textbf{clasificación} y por otro, si el valor a predecir es un valor continuo,
+el modelo será de \textbf{regresión}.
+
+\begin{itemize}
+    \item \textbf{Clasificación}: Los modelos de clasificación (generados a
+    partir de algoritmos de aprendizaje), a veces denominados simplemente como
+    clasificadores, tratan de predecir la clase de una nueva entrada a partir
+    del entrenamiento previo realizado. Estas clases son discretas y en
+    clasificación pueden referirse a clases (o etiquetas) binarias o clases
+    múltiples.
+    
+    \item \textbf{Regresión}: En este caso, el modelo asigna un valor continuo a
+    una entrada. Es decir, trata de encontrar una función continua basándose en
+    las variables de entrada. Se denomina también ajuste de funciones.
+\end{itemize}
+
+
+\subsection{Aprendizaje no supervisado}
+\label{aprendizaje-no-supervisado}
+
+A diferencia del aprendizaje supervisado, en el no supervisado, los algoritmos
+de aprendizaje no se nutren de datos etiquetados. En otras palabras, los
+usuarios no "<supervisan"> el algoritmo~\cite{salim:usl}. Esto quiere decir que
+no aprenderán de etiquetas, sino de la propia estructura que se encuentre en los
+datos (patrones). Por ejemplo, dadas unas imágenes de animales, sin especificar
+cuál es cuál, el aprendizaje no supervisado identificará las similitudes entre
+imágenes y como resultado podría dar la separación de las especies (o
+separaciones entre colores, pelaje, raza...).
+
+Como principales usos del aprendizaje no supervisado, suele aplicarse a:
+\vspace{-4px}
+\begin{enumerate}
+    \item \textbf{Agrupamiento (Clustering)}: Este tipo de algoritmo de
+    aprendizaje no supervisado trata de dividir los datos en grupos. Para ello,
+    estudia las similitudes entre ellos y también en las disimilitudes con
+    otros. Estos algoritmos pueden tanto descubrir por ellos mismos los
+    <<clústeres>> o grupos que se encuentran o indicarle cuántos debe
+    identificar~\cite{salim:usl}.
+    \item \textbf{Reducción de la dimensionalidad}: Para empezar, el término
+    "<dimensionalidad"> hace referencia al número de variables de entrada que
+    tienen los datos. En la realidad, los conjuntos de datos sobre los que se
+    trabaja suelen tener una dimensionalidad grande. Según
+   ~\cite{javatpoint:reduccionsdims} la reducción de dimensionalidad se denomina
+    como: \begin{quote}<<\textit{Una forma de convertir conjuntos de datos de alta dimensionalidad en
+    conjunto de datos de menor dimensionalidad, pero garantizando que proporciona
+    información similar.}>>\end{quote} Es decir, simplificar el problema pero sin perder
+    toda esa estructura interesante de los datos. Algunos ejemplos pueden ser:
+    \begin{itemize}
+        \item Análisis de Componentes Principales (PCA).
+        \item Cuantificación vectorial.
+        \item Autoencoders.
+    \end{itemize}
+\end{enumerate}
+
+\imagenconurl{figuras/Clustering.jpg}{Clusters}{\footnotesize{\emph{Clusters}. Ejemplo de
+agrupamiento, a la izquierda los datos no etiquetados y a la derecha los datos
+coloreados según las clases identificadas por el algoritmo de clustering. By
+hellisp - Own work, Public Domain,
+\url{https://commons.wikimedia.org/w/index.php?curid=36929773}. }}{0.7} 
+
+\subsection{Aprendizaje semi-supervisado}
+\label{aprendizaje-semi-supervisado}
+
+Según~\cite{vanEngelen2020}, el aprendizaje semi-supervisado es la rama del
+aprendizaje automático referido al uso simultáneo de datos tanto etiquetados
+como no etiquetados para realizar tareas de aprendizaje. Se encuentra a caballo
+entre el aprendizaje supervisado y el no supervisado. Concretamente, los
+problemas donde más se aplica, y donde más investigación se realiza es en
+clasificación. Los métodos semi-supervisados resultan especialmente útiles
+cuando se tienen escasos datos etiquetados, que, aparte de ser una situación
+común en problemas reales, hacen que el proceso de etiquetado sea una labor
+compleja, que consume tiempo y es costosa.
+
+\subsubsection{Suposiciones}
+El objetivo de usar datos no etiquetados es construir un clasificador que sea
+mejor que el que se obtendría utilizando aprendizaje supervisado, donde solo se
+tienen datos etiquetados. Pero para que el aprendizaje semi-supervisado mejore a
+lo ya existente, tiene una serie de suposiciones que han de cumplirse.
+
+En primera instancia se dice que la condición necesaria es que la distribución
+$p(x)$ del espacio de entrada contiene información sobre la distribución
+posterior $p(y|x)$~\cite{vanEngelen2020}.
+
+Pero la forma en el que interactúan los datos de una distribución y la posterior,
+no siempre es la misma:
+
+\begin{tcolorbox}[colback=cyan!5!white,colframe=cyan!75!black,title=\textit{Smoothness assumption}]
+    Esta suposición indica que si dos ejemplos (o instancias) de la entrada
+    están cerca en ese espacio de entrada, entonces, probablemente, sus
+    etiquetas sean las mismas.
+\end{tcolorbox}
+
+\medskip
+
+\begin{tcolorbox}[colback=cyan!5!white,colframe=cyan!75!black,title=\textit{Low-density assumption}]
+    Esta suposición indica que en clasificación, los límites de decisión deben
+    encontrarse en zonas en las que haya pocos de estos ejemplos (o instancias).
+\end{tcolorbox}
+
+\medskip
+
+\begin{tcolorbox}[colback=cyan!5!white,colframe=cyan!75!black,title=\textit{Manifold assumption}]
+    Los datos pueden tener una dimensionalidad alta (muchas características)
+    pero generalmente no todas las características son completamente útiles. Los
+    datos a menudo se encuentran en unas estructuras de más baja
+    dimensionalidad. Estas estructuras se conocen como \emph{manifolds}.
+    Esta suposición indica que si los datos del espacio de entrada se encuentran
+    en estas \emph{manifolds} entonces aquellos puntos que se encuentren en
+    el mismo \emph{manifolds} tendrán la misma etiqueta.
+   ~\cite{towardsdatascience:semi,vanEngelen2020}
+\end{tcolorbox}
+
+\medskip
+
+\begin{tcolorbox}[colback=cyan!5!white,colframe=cyan!75!black,title=\textit{Cluster assumption}]
+    Como generalización de las anteriores, aquellos datos que se encuentren en
+    un mismo clúster tendrán la misma etiqueta.
+\end{tcolorbox}
+
+
+De estas suposiciones se extrae el concepto de ``similitud'' que está presente
+en todas ellas. Y en realidad, todas son versiones de la \textit{Cluster
+assumption}, que dice que los puntos similares tienden a pertenecer al mismo
+grupo. 
+
+Además, la suposición de clúster resulta necesaria para que \destacado{el aprendizaje
+semi-supervisado mejore al supervisado} (esta es la idea principal del semi-supervisado). Si los datos no pueden ser agrupados,
+entonces no mejorará ningún método supervisado~\cite{vanEngelen2020}.
+
+
+Para tener un punto de vista general, en la figura~\ref{fig:figuras/AprendizajeSemiSupervisado.pdf} se presenta la
+taxonomía más general y aceptada de los métodos de aprendizaje semi-supervisado.
+
+\imagen{figuras/AprendizajeSemiSupervisado.pdf}{Taxonomía de métodos semi-supervisados}{Taxonomía de métodos semi-supervisados
+~\cite{vanEngelen2020}.}{1}
+
+Sin pérdida de generalidad, este trabajo estará centrado en métodos semi-supervisados basados en grafos y árboles (intrínsecamente semi-supervisados) con la comparación con otros métodos enmarcados en esta taxonomía.
+
+\clearpage
+\section{Métodos implementados}
+
+SSLTree
