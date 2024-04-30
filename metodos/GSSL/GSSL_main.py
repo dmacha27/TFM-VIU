@@ -1,5 +1,3 @@
-import sys
-
 import numpy as np
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
@@ -14,7 +12,7 @@ if __name__ == '__main__':
     from ucimlrepo import fetch_ucirepo
 
     # fetch dataset
-    dry_bean = fetch_ucirepo(id=602)
+    dry_bean = fetch_ucirepo(id=186)
 
     # data (as pandas dataframes)
     dataset = dry_bean.data.features.values
@@ -23,7 +21,7 @@ if __name__ == '__main__':
 
     if transductive:
 
-        num_samples_to_unlabel = int(0.7 * len(labels))
+        num_samples_to_unlabel = int(0.3 * len(labels))
         unlabeled_indices = np.random.choice(len(labels), num_samples_to_unlabel, replace=False)
         labels[unlabeled_indices] = -1
 
@@ -43,8 +41,6 @@ if __name__ == '__main__':
 
         pred = trans.fit_predict(X, y)
 
-        np.set_printoptions(threshold=sys.maxsize)
-
         print("Accuracy GSSL:", accuracy_score(real_targets[no_labeled], pred[len(labeled):]))
 
         knn = KNeighborsClassifier(n_neighbors=5)
@@ -53,7 +49,7 @@ if __name__ == '__main__':
 
     else:
 
-        X_train, X_test, y_train, y_test = train_test_split(dataset, labels, test_size=0.33, random_state=42)
+        X_train, X_test, y_train, y_test = train_test_split(dataset, labels, test_size=0.3, random_state=42)
 
         num_samples_to_unlabel = int(0.7 * len(y_train))
         unlabeled_indices = np.random.choice(len(y_train), num_samples_to_unlabel, replace=False)
@@ -77,6 +73,7 @@ if __name__ == '__main__':
 
         pred = trans.predict(X_test)
 
-        np.set_printoptions(threshold=sys.maxsize)
-
         print("Accuracy GSSL:", accuracy_score(y_test, pred))
+        knn = KNeighborsClassifier(n_neighbors=5)
+        knn.fit(X_train_labeled, y_train_labeled)
+        print("Accuracy KNN:", accuracy_score(y_test, knn.predict(X_test)))
