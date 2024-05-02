@@ -55,24 +55,18 @@ Partiendo del concepto de etiqueta de un dato, el problema será de \textbf{clas
 
 A diferencia del aprendizaje supervisado, el no supervisado no trabaja con datos etiquetados y clases. Según~\cite{salim:usl} esto quiere decir que nosotros no ``supervisamos'' el algoritmo. No se le añade ese conocimiento extra. Estos algoritmos intentarán descubrir patrones que se encuentren en la propia estructura de los datos (de sus características). La idea del aprendizaje no supervisado es estudiar las similitudes/disimilitudes que hay entre los datos y, por ejemplo, obtener una separación o agrupación de los mismos (e.g. separación de especies en imágenes de animales sin conocer el animal concreto).
  
-A continuación, las principales aplicaciones del aprendizaje no supervisado:
+Entre las principales aplicaciones del aprendizaje no supervisado se encuentran las siguientes:
 \vspace{-4px}
 \begin{enumerate}
-    \item \textbf{Agrupamiento (Clustering)}: Este tipo de algoritmo de
-    aprendizaje no supervisado trata de dividir los datos en grupos. Para ello,
-    estudia las similitudes entre ellos y también en las disimilitudes con
-    otros. Estos algoritmos pueden tanto descubrir por ellos mismos los
-    <<clústeres>> o grupos que se encuentran o indicarle cuántos debe
-    identificar~\cite{salim:usl}.
-    \item \textbf{Reducción de la dimensionalidad}: Para empezar, el término
-    "<dimensionalidad"> hace referencia al número de variables de entrada que
-    tienen los datos. En la realidad, los conjuntos de datos sobre los que se
-    trabaja suelen tener una dimensionalidad grande. Según
-   ~\cite{javatpoint:reduccionsdims} la reducción de dimensionalidad se denomina
+    \item \textbf{Agrupamiento (Clustering)}: Divide los datos en grupos. Los ejemplos de un grupo tendrán cierta similitud entre ellos, mientras que todos los ejemplos de ese grupo serán disimilares a los de otro grupo (y por eso se generó esa división). Algunos algoritmos necesitan conocer de antemano el número de grupos en los que dividir lo datos, otros son capaces de descubrir cuántos grupos existen~\cite{salim:usl}.
+    \item \textbf{Reducción de la dimensionalidad}: Los conjuntos de datos generalmente tiene un número bastante grande de características. Esto hace que los algoritmos de aprendizaje sean más lentos. La reducción de dimensionalidad hace referencia a la reducción de número de características tratando de no perder información al hacerlo.
+    Según
+   ~\cite{javatpoint:reduccionsdims} se denomina
     como: \begin{quote}<<\textit{Una forma de convertir conjuntos de datos de alta dimensionalidad en
     conjunto de datos de menor dimensionalidad, pero garantizando que proporciona
-    información similar.}>>\end{quote} Es decir, simplificar el problema pero sin perder
-    toda esa estructura interesante de los datos. Algunos ejemplos pueden ser:
+    información similar.}>>\end{quote} 
+    
+    Algunos ejemplos concretos de reducción de dimensionalidad son:
     \begin{itemize}
         \item Análisis de Componentes Principales (PCA).
         \item Cuantificación vectorial.
@@ -80,9 +74,7 @@ A continuación, las principales aplicaciones del aprendizaje no supervisado:
     \end{itemize}
 \end{enumerate}
 
-\imagenconurl{figuras/Clustering.jpg}{Clusters}{\footnotesize{\emph{Clusters}. Ejemplo de
-agrupamiento, a la izquierda los datos no etiquetados y a la derecha los datos
-coloreados según las clases identificadas por el algoritmo de clustering. By
+\imagenconurl{figuras/Clustering.jpg}{Clusters}{\footnotesize{\emph{Clusters}. A la izquierda los datos sin agrupar y a la derecha los datos coloreados según la pertenencia a los distintos grupos. By
 hellisp - Own work, Public Domain,
 \url{https://commons.wikimedia.org/w/index.php?curid=36929773}. }}{0.7} 
 
@@ -90,77 +82,66 @@ hellisp - Own work, Public Domain,
 \label{aprendizaje-semi-supervisado}
 
 Según~\cite{vanEngelen2020}, el aprendizaje semi-supervisado es la rama del
-aprendizaje automático referido al uso simultáneo de datos tanto etiquetados
-como no etiquetados para realizar tareas de aprendizaje. Se encuentra a caballo
-entre el aprendizaje supervisado y el no supervisado. Concretamente, los
-problemas donde más se aplica, y donde más investigación se realiza es en
-clasificación. Los métodos semi-supervisados resultan especialmente útiles
-cuando se tienen escasos datos etiquetados, que, aparte de ser una situación
-común en problemas reales, hacen que el proceso de etiquetado sea una labor
-compleja, que consume tiempo y es costosa.
+aprendizaje automático que utiliza tanto datos etiquetados como no etiquetados 
+durante el entrenamiento. Es por esto que se dice que está a medio camino entre 
+el aprendizaje supervisado y el no supervisado. Como se ha comentado, el problema
+al que todos los algoritmos se enfrentan en la realidad es a la escasez de datos 
+etiquetados, pues es un proceso costoso. Gracias a la naturaleza del semi-supervisado,
+hace que sea una buena aproximación para esos casos. Por lo general, suele aplicarse 
+en problemas de clasificación.
 
 \subsubsection{Suposiciones}
-El objetivo de usar datos no etiquetados es construir un clasificador que sea
-mejor que el que se obtendría utilizando aprendizaje supervisado, donde solo se
-tienen datos etiquetados. Pero para que el aprendizaje semi-supervisado mejore a
-lo ya existente, tiene una serie de suposiciones que han de cumplirse.
+¿Y por qué utilizar aprendizaje semi-supervisado? Lo cierto es que algunos
+de los algoritmos existentes de aprendizaje supervisado funcionan bastante bien
+incluso con pocos datos etiquetados. Sin embargo, los datos no etiquetados podrían
+aprovecharse para mejorar el rendimiento.
 
-En primera instancia se dice que la condición necesaria es que la distribución
-$p(x)$ del espacio de entrada contiene información sobre la distribución
-posterior $p(y|x)$~\cite{vanEngelen2020}.
+El objetivo, por tanto, del aprendizaje semi-supervisado será obtener clasificadores
+que obtengan mejores resultados que los del aprendizaje supervisado. En~\cite{vanEngelen2020}
+se especifican unas condiciones que han de cumplirse.
 
-Pero la forma en el que interactúan los datos de una distribución y la posterior,
-no siempre es la misma:
+La primera premisa que se debe cumplir es que la distribución $p(x)$ de entrada contenga
+información sobre la distribución posterior $p(y|x)$~\cite{vanEngelen2020}.
 
 \begin{mainbox}{Smoothness assumption}
-    Esta suposición indica que si dos ejemplos (o instancias) de la entrada
-    están cerca en ese espacio de entrada, entonces, probablemente, sus
-    etiquetas sean las mismas.
+    Probablemente, si dos ejemplos se encuentran próximos en el espacio, comparten
+    la misma etiqueta.
 \end{mainbox}
 
 \medskip
 
 \begin{mainbox}{Low-density assumption}
-    Esta suposición indica que en clasificación, los límites de decisión deben
-    encontrarse en zonas en las que haya pocos de estos ejemplos (o instancias).
+    La frontera de decisión en un problema de clasificación se encontrará en una zona del espacio
+    en el que existan pocos ejemplos.
 \end{mainbox}
 
 \medskip
 
 \begin{mainbox}{Manifold assumption}
-    Los datos pueden tener una dimensionalidad alta (muchas características)
-    pero generalmente no todas las características son completamente útiles. Los
-    datos a menudo se encuentran en unas estructuras de más baja
-    dimensionalidad. Estas estructuras se conocen como \emph{manifolds}.
-    Esta suposición indica que si los datos del espacio de entrada se encuentran
-    en estas \emph{manifolds} entonces aquellos puntos que se encuentren en
-    el mismo \emph{manifolds} tendrán la misma etiqueta.
-   ~\cite{towardsdatascience:semi,vanEngelen2020}
+    Los ejemplos suele encontrarse en una estructuras de dimensionalidad baja (algunas características
+    no son útiles), denominadas \emph{manifolds}. Los ejemplos que se encuentren en una misma \emph{manifold} comparten la misma etiqueta~\cite{towardsdatascience:semi,vanEngelen2020}.
 \end{mainbox}
 
 \medskip
 
 \begin{mainbox}{Cluster assumption}
-    Como generalización de las anteriores, aquellos datos que se encuentren en
-    un mismo clúster tendrán la misma etiqueta.
+    Los ejemplos que se encuentren en un mismo grupo compartirán la misma etiqueta.
 \end{mainbox}
 
 
-De estas suposiciones se extrae el concepto de ``similitud'' que está presente
-en todas ellas. Y en realidad, todas son versiones de la \textit{Cluster
-assumption}, que dice que los puntos similares tienden a pertenecer al mismo
-grupo. 
+El concepto clave de todas estas suposiciones es el de la ``similitud'' 
+(ejemplos próximos en el espacio, ejemplos en misma manifold, mismo grupo...). 
+Es por esto que la \textit{Cluster assumption} es una generalización del
+resto (o el resto son versiones de esta).
 
-Además, la suposición de clúster resulta necesaria para que \destacado{el aprendizaje
-semi-supervisado mejore al supervisado} (esta es la idea principal del semi-supervisado). Si los datos no pueden ser agrupados,
-entonces no mejorará ningún método supervisado~\cite{vanEngelen2020}.
+Por esto, para que el que \destacado{el aprendizaje semi-supervisado mejore al supervisado}
+es necesario que se cumpla dicha suposición generalizada. Si no fuese así (i.e. datos no agrupables),
+el aprendizaje semi-supercisado no mejorará al supervisado~\cite{vanEngelen2020}.
 
 
-Para tener un punto de vista general, en la figura~\ref{fig:figuras/AprendizajeSemiSupervisado.pdf} se presenta la
-taxonomía más general y aceptada de los métodos de aprendizaje semi-supervisado.
+En la figura~\ref{fig:figuras/AprendizajeSemiSupervisado.pdf} se presenta la taxonomía general del aprendizaje semi-supervisado.
 
-\imagen{figuras/AprendizajeSemiSupervisado.pdf}{Taxonomía de métodos semi-supervisados}{Taxonomía de métodos semi-supervisados
-~\cite{vanEngelen2020}.}{1}
+\imagen{figuras/AprendizajeSemiSupervisado.pdf}{Taxonomía de métodos semi-supervisados}{Taxonomía de métodos semi-supervisados~\cite{vanEngelen2020}.}{1}
 
 Sin pérdida de generalidad, este trabajo estará centrado en métodos semi-supervisados basados en grafos y árboles (intrínsecamente semi-supervisados) con la comparación con otros métodos enmarcados en esta taxonomía.
 
