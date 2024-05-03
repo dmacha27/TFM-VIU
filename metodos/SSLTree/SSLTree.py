@@ -73,6 +73,11 @@ class SSLTree(ClassifierMixin, BaseEstimator):
     w : float, default=0.75
         Controls the amount of supervision. Higher values for more supervision.
 
+    criterion : {'entropy', 'gini'}, default='entropy'
+        The function to measure the supervised part of the quality of a split.
+        - 'entropy': Shannon entropy.
+        - 'gini': Gini impurity.
+
     splitter : {'best', 'random'}, default='best'
         The strategy used to choose the split at each node.
         - 'best': Choose the best split based on impurity.
@@ -102,6 +107,9 @@ class SSLTree(ClassifierMixin, BaseEstimator):
     w : float
         The value of the 'w' parameter.
 
+    criterion : {'entropy', 'gini'}
+        The function to measure the supervised part of the quality of a split.
+
     splitter : {'best', 'random'}
         The strategy used to choose the split at each node.
 
@@ -114,7 +122,7 @@ class SSLTree(ClassifierMixin, BaseEstimator):
     min_samples_leaf : int, default=1
         The minimum number of samples required to be at a leaf node.
 
-    max_features : {'auto', 'sqrt', 'log2', int or float}
+    max_features : {'auto', 'sqrt', 'log2', int or float}, default='auto'
         The number of features to consider when looking for the best split.
 
     random_state : int, RandomState instance or None, default=None
@@ -143,6 +151,7 @@ class SSLTree(ClassifierMixin, BaseEstimator):
 
     def __init__(self,
                  w=0.75,
+                 criterion='entropy',
                  splitter='best',
                  max_depth=None,
                  min_samples_split=2,
@@ -151,6 +160,7 @@ class SSLTree(ClassifierMixin, BaseEstimator):
                  random_state=None):
 
         self.w = w
+        self.criterion = criterion
         self.splitter = splitter
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
@@ -160,27 +170,31 @@ class SSLTree(ClassifierMixin, BaseEstimator):
 
         self.tree = None
         self.total_var = None
-        self.total_gini = None
+        self.total_impurity = None
         self.labels = None
         self.feature_names = None
 
-    def _gini(self, labels):
+    def _impurity(self, labels):
         """
-        Calculate the Gini impurity for a set of labels.
+        Calculate the impurity measure (either Gini impurity or Shannon entropy) for a set of labels.
 
         Parameters
         ----------
         labels : array-like
-            The array containing the labels for which Gini impurity needs to be calculated.
+            The array containing the labels for which impurity needs to be calculated.
 
         Returns
         -------
         float
-            The Gini impurity score for the given set of labels.
+            The impurity score (Gini impurity or Shannon entropy) for the given set of labels.
         """
 
         probs = np.unique(labels, return_counts=True)[1] / len(labels)
-        return sum([-p * np.log2(p) for p in probs if p > 0])
+
+        if self.criterion == 'gini':
+            return 1 - np.sum(probs ** 2)
+        else:
+            return sum([-p * np.log2(p) for p in probs if p > 0])
 
     def _var(self, X_i):
         """
@@ -218,10 +232,10 @@ class SSLTree(ClassifierMixin, BaseEstimator):
 
         total_count_labelled = np.sum([len(subset) for subset in subsets_labelled])
         if total_count_labelled != 0:
-            gini = np.sum(
-                [self._gini(subset[:, -1]) * (len(subset) / total_count_labelled) for subset in subsets_labelled])
+            impurity = np.sum(
+                [self._impurity(subset[:, -1]) * (len(subset) / total_count_labelled) for subset in subsets_labelled])
         else:
-            gini = 0
+            impurity = 0
 
         total_count = np.sum([len(subset) for subset in partitions])
         var = 0
@@ -232,7 +246,7 @@ class SSLTree(ClassifierMixin, BaseEstimator):
 
             var += (num / self.total_var[i]) if self.total_var[i] else 0
 
-        return self.w * gini / self.total_gini + ((1 - self.w) / (partitions[0].shape[1] - 1)) * var
+        return self.w * impurity / self.total_impurity + ((1 - self.w) / (partitions[0].shape[1] - 1)) * var
 
     def _split(self, data, feature, feature_val):
         """
@@ -443,7 +457,7 @@ class SSLTree(ClassifierMixin, BaseEstimator):
 
         data = np.concatenate((X, y), axis=1)
 
-        self.total_gini = self._gini(data[data[:, -1] != -1][:, -1])
+        self.total_impurity = self._impurity(data[data[:, -1] != -1][:, -1])
         self.total_var = [self._var(data[:, i]) for i in range(data.shape[1] - 1)]
 
         self.tree = self._create_tree(data, 0)
