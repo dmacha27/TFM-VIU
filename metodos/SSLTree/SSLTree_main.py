@@ -60,7 +60,7 @@ def cross_val(name, p_unlabeled="20"):
 
         train_data_label = train_data[train_data.iloc[:, -1] != -1]
 
-        my_tree = SSLTree(w=1)
+        my_tree = SSLTree()
         my_tree.fit(train_data.iloc[:, :-1].values, train_data.iloc[:, -1].values)
         # print(my_tree.export_tree())
         # print(accuracy_score(test_data.iloc[:, -1].values, my_tree.predict(test_data.iloc[:, :-1].values)))

@@ -332,7 +332,8 @@ class SSLTree(ClassifierMixin, BaseEstimator):
         selected_features = self._feature_selector(data.shape[1] - 1)
 
         for feature in selected_features:
-            possible_partitions = np.unique(data[:, feature])
+            possible_values = np.unique(data[:, feature])
+            possible_partitions = (possible_values[:-1] + possible_values[1:]) / 2
             if self.splitter != 'random':
                 partition_values = possible_partitions
             else:
