@@ -128,25 +128,6 @@ class SSLTree(ClassifierMixin, BaseEstimator):
     random_state : int, RandomState instance or None, default=None
         Controls the randomness of the estimator.
 
-    Examples
-    --------
-    >>> from sklearn.datasets import load_iris
-    >>> from sklearn.model_selection import train_test_split
-    >>> from sklearn.metrics import accuracy_score
-    >>> from your_module import SSLTree
-
-    >>> # Load iris dataset
-    >>> iris = load_iris()
-    >>> X_train, X_test, y_train, y_test = train_test_split(iris.data, iris.target, test_size=0.2)
-
-    >>> # Maybe unlabel some samples on X_train (y_train)
-    >>> # y_train[np.percentile(y_train, 70)] = -1
-    >>> # Train SSLTree model
-    >>> clf = SSLTree(w=0.75, max_depth=5)
-    >>> clf.fit(X_train, y_train)
-
-    >>> # Predict
-    >>> y_pred = clf.predict(X_test)
     """
 
     def __init__(self,
@@ -169,6 +150,7 @@ class SSLTree(ClassifierMixin, BaseEstimator):
         self.random_state = random_state
 
         self.tree = None
+        self.selected_features = None
         self.total_var = None
         self.total_impurity = None
         self.labels = None
@@ -233,20 +215,21 @@ class SSLTree(ClassifierMixin, BaseEstimator):
         total_count_labelled = np.sum([len(subset) for subset in subsets_labelled])
         if total_count_labelled != 0:
             impurity = np.sum(
-                [self._impurity(subset[:, -1]) * (len(subset) / total_count_labelled) for subset in subsets_labelled])
+                [self._impurity(subset[:, -1]) * (len(subset) / total_count_labelled) for subset in
+                 subsets_labelled]) / self.total_impurity
         else:
             impurity = 0
 
         total_count = np.sum([len(subset) for subset in partitions])
         var = 0
-        for i in range(partitions[0].shape[1] - 1):
+        for i in self.selected_features:
             num = 0
             for subset in partitions:
                 num += self._var(subset[:, i]) * (len(subset) / total_count)
 
             var += (num / self.total_var[i]) if self.total_var[i] else 0
 
-        return self.w * impurity / self.total_impurity + ((1 - self.w) / (partitions[0].shape[1] - 1)) * var
+        return self.w * impurity + ((1 - self.w) / (len(self.selected_features))) * var
 
     def _split(self, data, feature, feature_val):
         """
@@ -303,6 +286,8 @@ class SSLTree(ClassifierMixin, BaseEstimator):
         else:
             raise ValueError("Invalid value for max_features")
 
+        max_features = max(1, max_features)
+
         return self.random_state.choice(num_features, max_features, replace=False)
 
     def _best_split(self, data):
@@ -329,11 +314,9 @@ class SSLTree(ClassifierMixin, BaseEstimator):
         best_feature = -1
         best_feature_val = -1
 
-        selected_features = self._feature_selector(data.shape[1] - 1)
-
-        for feature in selected_features:
-            possible_values = np.unique(data[:, feature])
-            possible_partitions = (possible_values[:-1] + possible_values[1:]) / 2
+        for feature in self.selected_features:
+            possible_partitions = np.unique(data[:, feature])
+            # possible_partitions = (possible_values[:-1] + possible_values[1:]) / 2
             if self.splitter != 'random':
                 partition_values = possible_partitions
             else:
@@ -452,6 +435,8 @@ class SSLTree(ClassifierMixin, BaseEstimator):
 
         # Unlabelled samples must have -1 label
         self.labels = np.sort(all_labels[all_labels != -1])
+
+        self.selected_features = self._feature_selector(X.shape[1])
 
         if len(y.shape) != 2:
             y = y.reshape(-1, 1)
