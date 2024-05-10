@@ -155,6 +155,7 @@ class SSLTree(ClassifierMixin, BaseEstimator):
         self.total_impurity = None
         self.labels = None
         self.feature_names = None
+        self.depth = 0
 
     def _impurity(self, labels):
         """
@@ -394,9 +395,11 @@ class SSLTree(ClassifierMixin, BaseEstimator):
 
         if self.min_samples_leaf >= len(np.unique(left_data_labelled[:, :-1], axis=0)) and self.min_samples_leaf >= len(
                 np.unique(right_data_labelled[:, :-1], axis=0)):
+            self.depth = max(self.depth, depth)
             return root
 
         if 1.0 in root.probabilities:
+            self.depth = max(self.depth, depth)
             return root
 
         # Minimum number of samples required to split an internal node.
@@ -407,6 +410,7 @@ class SSLTree(ClassifierMixin, BaseEstimator):
             root.left = None
             root.right = None
 
+        self.depth = max(self.depth, depth)
         return root
 
     def fit(self, X, y, feature_names=None):

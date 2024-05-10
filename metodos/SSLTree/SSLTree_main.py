@@ -43,6 +43,15 @@ def cross_val(name, p_unlabeled="20"):
                 f'datasets/{p_unlabeled}/{name}-ssl{p_unlabeled}-10-fold/{name}-ssl{p_unlabeled}/{name}-ssl{p_unlabeled}-10-{k}tst.dat',
                 '@data'))
 
+        columnas_strings = train_data.iloc[:, :-1].select_dtypes(exclude=['number']).columns.tolist()
+
+        for col in columnas_strings:
+            encoder = LabelEncoder()
+            train_data.iloc[:, col] = encoder.fit_transform(train_data.iloc[:, col])
+            train_data[col] = train_data[col].apply(pd.to_numeric)
+            test_data.iloc[:, col] = encoder.transform(test_data.iloc[:, col])
+            test_data[col] = test_data[col].apply(pd.to_numeric)
+
         if pd.api.types.is_numeric_dtype(test_data.iloc[:, -1]):
             train_data.loc[train_data.iloc[:, -1] == ' unlabeled', len(train_data.columns) - 1] = -1
             train_data.iloc[:, -1] = pd.to_numeric(train_data.iloc[:, -1])
@@ -83,8 +92,64 @@ def cross_val(name, p_unlabeled="20"):
     return np.median(accuracy_ssl), np.median(accuracy_dt), np.median(accuracy_st)
 
 
-names = ["yeast", "iris", "appendicitis", "wine", "bupa", "dermatology", "glass", "sonar", "spectfheart", "vehicle",
-         "vowel", "cleveland"]
+names = [
+    # "abalone",
+    "appendicitis",
+    "australian",
+    # "automobile",
+    # "banana", best_left
+    # "breast",
+    "bupa",
+    # "chess",
+    "cleveland",
+    "coil2000",
+    "contraceptive",
+    # "
+    # crx",
+    "dermatology",
+    "ecoli",
+    "flare",
+    "german",
+    "glass",
+    "haberman",
+    "heart",
+    "hepatitis",
+    # "housevotes",
+    "iris",
+    "led7digit",
+    # "lymphography",
+    "magic",
+    "mammographic",
+    "marketing",
+    "monk-2",
+    "movement_libras",
+    # "mushroom",
+    "nursery",
+    "page-blocks",
+    "penbased",
+    "phoneme",
+    # "pima",
+    # "ring", no hay problema, pero tarda como dos milenios (aprox)
+    "saheart",
+    "satimage",
+    "segment",
+    "sonar",
+    "spambase",
+    "spectfheart",
+    "splice",
+    "tae",
+    "texture",
+    "thyroid",
+    "tic-tac-toe",
+    "titanic",
+    "twonorm",
+    "vehicle",
+    "vowel",
+    "wine",
+    "wisconsin",
+    "yeast",
+    "zoo"
+]
 
 # Problemas con tae, thyroid, contraceptive
 
@@ -134,8 +199,8 @@ classifiers = ["SSLTree", "DecisionTree", "SelfTraining"]
 for j, classifier in enumerate(classifiers):
     plt.scatter(["10%", "20%", "30%", "40%"], all_mean_rankings[j], label=classifier)
 
-plt.ylim(0, 3.5)
-plt.xlabel("Percentage")
+plt.ylim(1, 3)
+plt.xlabel("Label percentage")
 plt.ylabel("Ranking")
 plt.title("Comparativa SSLTree, DT y ST")
 
