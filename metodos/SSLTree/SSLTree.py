@@ -1,8 +1,19 @@
+"""
+SSLTree.py
+
+Author: David Martínez Acha
+Email: dmacha@ubu.es / achacbmb3@gmail.com
+Last Modified: 13/05/2024
+Description: Semi-supervised tree (handles both labeled and unlabeled data)
+"""
+
 import math
 
 import numpy as np
 from sklearn.base import ClassifierMixin, BaseEstimator
 from sklearn.utils.validation import check_random_state
+
+from utils.Pruning import CostComplexityPruning
 
 
 class Node:
@@ -128,6 +139,9 @@ class SSLTree(ClassifierMixin, BaseEstimator):
     random_state : int, RandomState instance or None, default=None
         Controls the randomness of the estimator.
 
+    ccp_alpha : float, default=0.0
+        Regularization parameter used for pruning. Higher values will prune more nodes.
+
     """
 
     def __init__(self,
@@ -138,7 +152,8 @@ class SSLTree(ClassifierMixin, BaseEstimator):
                  min_samples_split=2,
                  min_samples_leaf=1,
                  max_features='auto',
-                 random_state=None):
+                 random_state=None,
+                 ccp_alpha=0.0):
 
         self.w = w
         self.criterion = criterion
@@ -148,6 +163,7 @@ class SSLTree(ClassifierMixin, BaseEstimator):
         self.min_samples_leaf = min_samples_leaf
         self.max_features = max_features
         self.random_state = random_state
+        self.ccp_alpha = ccp_alpha
 
         self.tree = None
         self.selected_features = None
@@ -451,6 +467,8 @@ class SSLTree(ClassifierMixin, BaseEstimator):
         self.total_var = [self._var(data[:, i]) for i in range(data.shape[1] - 1)]
 
         self.tree = self._create_tree(data, 0)
+
+        self.tree = CostComplexityPruning.prune(self.tree, self.depth, self.ccp_alpha)
 
         return self
 

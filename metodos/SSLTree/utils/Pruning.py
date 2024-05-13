@@ -1,6 +1,62 @@
+"""
+Pruning.py
+
+Author: David Martínez Acha
+Email: dmacha@ubu.es / achacbmb3@gmail.com
+Last Modified: 13/05/2024
+Description: Pruning methods
+"""
+
+import numpy as np
+import bisect
+
+
 class CostComplexityPruning:
+    """
+    Cost Complexity Pruning for decision trees.
+
+    Methods
+    -------
+    prune(tree, depth, ccp_alpha=0.0):
+        Prunes the decision tree with Cost Complexity Pruning algorithm.
+
+    _tree_to_array(tree, depth):
+        Converts the decision tree into an array representation.
+
+    _recursive_tree_to_array(node, tree_array, inner_nodes, index):
+        Recursively converts the decision tree into an array representation.
+
+    _leaves_of_subtree(tree_array):
+        Finds the leaves of each subtree in the array representation of the decision tree.
+
+    _recursive_leaves_of_subtree(tree_array, index, leaves):
+        Recursively finds the leaves of each subtree in the array representation of the decision tree.
+    """
+
     @staticmethod
-    def prune(tree, depth):
+    def prune(tree, depth, ccp_alpha=0.0):
+        """
+        Prunes the decision tree with the Cost Complexity Pruning algorithm.
+
+        Parameters
+        ----------
+        tree :
+            Decision Tree (root of decision tree).
+        depth : int
+            The depth of the decision tree.
+        ccp_alpha : float, optional
+            Regularization parameter used for pruning, by default 0.0.
+            Higher values will prune more nodes.
+
+        Returns
+        -------
+        Node
+            The root of the pruned decision tree.
+        """
+
+        if ccp_alpha == 0:
+            return tree
+
         tree_array, inner_nodes = CostComplexityPruning._tree_to_array(tree, depth)
 
         f_T = CostComplexityPruning._leaves_of_subtree(tree_array)  # Leaves of each node
@@ -12,7 +68,10 @@ class CostComplexityPruning:
 
         g_t = lambda x: (R_t(x) - R_T_t(x)) / (len(f_T[x]) - 1)
 
-        for i in range(4):
+        alphas = []
+        prunings = []
+
+        while len(inner_nodes) > 0:
 
             training_errors_nodes = [0] * len(inner_nodes)  # R(Tt)
             training_errors_subtrees = [0] * len(inner_nodes)  # R(t)
@@ -23,18 +82,81 @@ class CostComplexityPruning:
                 training_errors_subtrees[idx] = R_T_t(t)
                 objetive_function[idx] = g_t(t)
 
-        return inner_nodes
+            min_alpha = np.min(objetive_function)
+            minimal_g = np.where(objetive_function == min_alpha)[0]
+            minimal_g = inner_nodes[minimal_g]
+
+            to_prune = minimal_g[0]
+            for t in minimal_g:
+                if len(f_T[t]) < len(f_T[to_prune]):
+                    to_prune = t
+
+            # Update state
+            alphas.append(min_alpha)
+            prunings.append(to_prune)
+            inner_nodes = inner_nodes[inner_nodes != to_prune]
+
+            old_leaves = f_T[to_prune]
+            del f_T[to_prune]
+
+            for key in f_T:
+                if old_leaves.issubset(f_T[key]):
+                    f_T[key] -= old_leaves
+                    f_T[key].add(to_prune)
+
+        match_position = bisect.bisect_left(alphas, ccp_alpha)
+        new_leaves = prunings[:match_position if ccp_alpha not in alphas else match_position + 1]  # NEED TO BE REVIEWED
+
+        for t in new_leaves:
+            tree_array[t].left = None
+            tree_array[t].right = None
+
+        return tree
 
     @staticmethod
     def _tree_to_array(tree, depth):
+        """
+        Converts the decision tree into an array representation.
+
+        Parameters
+        ----------
+        tree :
+            Decision Tree (root of decision tree).
+        depth : int
+            The depth of the decision tree.
+
+        Returns
+        -------
+        numpy.ndarray
+            Array representation of the decision tree.
+        numpy.ndarray
+            Array of inner node (not leaves) indices.
+        """
+
         tree_array = [None] * (2 ** (depth + 1) - 1)
         inner_nodes = []
         CostComplexityPruning._recursive_tree_to_array(tree, tree_array, inner_nodes, 0)
-        return tree_array, inner_nodes
+        return np.array(tree_array), np.array(inner_nodes)
 
     @staticmethod
     def _recursive_tree_to_array(node, tree_array, inner_nodes, index):
-        if node:
+        """
+        Recursively converts the decision tree into an array representation.
+
+        Parameters
+        ----------
+        node :
+            The current node of the decision tree.
+        tree_array : list
+            Array representation of the decision tree.
+        inner_nodes : list
+            List of inner node indices.
+        index : int
+            Current index in the array representation.
+
+        """
+
+        if node and index < len(tree_array):
             tree_array[index] = node
             if node.left or node.right:
                 inner_nodes.append(index)
@@ -43,12 +165,44 @@ class CostComplexityPruning:
 
     @staticmethod
     def _leaves_of_subtree(tree_array):
+        """
+        Finds the leaves of each subtree in the array representation of the decision tree.
+
+        Parameters
+        ----------
+        tree_array : numpy.ndarray
+            Array representation of the decision tree.
+
+        Returns
+        -------
+        dict
+            Dictionary containing the leaves of each subtree.
+        """
+
         leaves = {}
         CostComplexityPruning._recursive_leaves_of_subtree(tree_array, 0, leaves)
         return leaves
 
     @staticmethod
     def _recursive_leaves_of_subtree(tree_array, index, leaves):
+        """
+        Recursively finds the leaves of each subtree in the array representation of the decision tree.
+
+        Parameters
+        ----------
+        tree_array : numpy.ndarray
+            Array representation of the decision tree.
+        index : int
+            Current index in the array representation.
+        leaves : dict
+            Dictionary containing the leaves of each subtree.
+
+        Returns
+        -------
+        list
+            List of indices of leaves in the subtree.
+        """
+
         left_child = 2 * index + 1
         right_child = 2 * index + 2
 
@@ -66,80 +220,3 @@ class CostComplexityPruning:
         leaves[index] = set(found_left_leaves)
 
         return found_left_leaves
-
-
-if __name__ == '__main__':
-    class Node:
-        """
-        A node in a decision tree.
-
-        Attributes
-        ----------
-        data : array-like
-            The subset of data points that belong to this node.
-
-        feature : int
-            The index of the feature used for splitting this node.
-
-        val_split : float
-            The value used for splitting the feature at this node.
-
-        impurity : float
-            The impurity of the node.
-
-        probabilities : array-like
-            The class probabilities associated with this node.
-
-        """
-
-        def __init__(self, data, feature, val_split, impurity, probabilities):
-            """
-            Initializes a Node object with the given data and attributes.
-
-            Parameters
-            ----------
-            data : array-like
-                The subset of data points that belong to this node.
-
-            feature : int
-                The index of the feature used for splitting this node.
-
-            val_split : float
-                The value used for splitting the feature at this node.
-
-            impurity : float
-                The impurity of the node.
-
-            probabilities : array-like
-                The class probabilities associated with this node.
-            """
-
-            self.data = data
-            self.feature = feature
-            self.val_split = val_split
-            self.impurity = impurity
-            self.probabilities = probabilities
-            self.left = None
-            self.right = None
-
-
-    leaf_node_1 = Node(data=[1] * 4, feature=None, val_split=None, impurity=0, probabilities=[0, 1])
-    leaf_node_2 = Node(data=[0] * 2, feature=None, val_split=None, impurity=0, probabilities=[1, 0])
-    leaf_node_3 = Node(data=[0] * 6, feature=None, val_split=None, impurity=0, probabilities=[1, 0])
-    leaf_node_4 = Node(data=[1] * 4, feature=None, val_split=None, impurity=0, probabilities=[0, 1])
-
-    internal_node = Node(data=[1] * 4 + [0] * 8, feature=0, val_split=0.5, impurity=0.5, probabilities=[0.5, 0.5])
-    internal_node.left = leaf_node_1
-    internal_node.right = Node(data=[1] * 4 + [0] * 8, feature=0, val_split=0.5, impurity=0.5,
-                               probabilities=[4 / 12, 8 / 12])
-    internal_node.right.left = leaf_node_3
-    internal_node.right.right = Node(data=[1] * 4 + [0] * 2, feature=0, val_split=0.5, impurity=0.33,
-                                     probabilities=[2 / 6, 4 / 6])
-    internal_node.right.right.left = leaf_node_2
-    internal_node.right.right.right = leaf_node_4
-
-    root = Node(data=[1] * 8 + [0] * 8, feature=0, val_split=0.5, impurity=0.5, probabilities=[0.5, 0.5])
-    root.left = leaf_node_1
-    root.right = internal_node
-
-    CostComplexityPruning.prune(root, 2)
