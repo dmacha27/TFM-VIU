@@ -113,6 +113,12 @@ class SSLTree(ClassifierMixin, BaseEstimator):
         - int: The number of features to consider at each split.
         - float: A fraction of the total number of features to consider at each split.
 
+    random_state : int, RandomState instance or None, default=None
+        Controls the randomness of the estimator.
+
+    ccp_alpha : float, default=0.0
+        Regularization parameter used for pruning. Higher values will prune more nodes.
+
     Attributes
     ----------
     w : float

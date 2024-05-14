@@ -15,6 +15,69 @@ from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.neighbors import KDTree
 
 
+def gbili(points, labels, k):
+    D = np.sqrt(np.sum((points[None, :] - points[:, None]) ** 2, -1))
+
+    labeled = np.where(np.array(labels) != -1)[0]
+
+    graph = {}
+    knn_list = {}
+    m_knn_list = {}
+
+    for i in range(len(points)):
+        # Find k-nearest neighbors
+        k_nearest_neighbors = []
+        for j in range(len(points)):
+            if i != j:
+                k_nearest_neighbors.append((j, D[i][j]))
+        k_nearest_neighbors.sort(key=lambda x: x[1])
+        k_nearest_neighbors = [j for j, _ in k_nearest_neighbors[:k]]
+        knn_list[i] = k_nearest_neighbors
+
+        m_k_nearest_neighbors = []
+        for j in k_nearest_neighbors:
+            neighbors_of_j = [w for w in range(len(points)) if w != j]
+            distances = [D[j][w] for w in neighbors_of_j]
+            nearest_neighbors_of_j = [w for _, w in sorted(zip(distances, neighbors_of_j))][:k]
+
+            if i in nearest_neighbors_of_j:
+                m_k_nearest_neighbors.append(j)
+        m_knn_list[i] = m_k_nearest_neighbors
+
+        min_sum_distance = float('inf')
+        min_neighbor = None
+        for j in m_k_nearest_neighbors:
+            for l in labeled:
+                distance = np.linalg.norm(points[i] - points[j]) + np.linalg.norm(points[j] - points[l])
+                if distance < min_sum_distance:
+                    min_sum_distance = distance
+                    min_neighbor = j
+        graph[i] = [min_neighbor]
+
+    components = search_components(graph)
+
+    for i in range(len(points)):
+        if len(np.intersect1d(components[i], labeled)) == 0:
+            for k in knn_list[i]:
+                if len(np.intersect1d(components[k], labeled)) > 0:
+                    graph[i].append(k)
+
+    return graph
+
+
+def search_components(graph):
+    components = {}
+    for i in graph:
+        components[i] = np.array([i])
+        neighbor = graph[i][0]
+        while neighbor:
+            if neighbor in components[i]: break
+            components[i] = np.append(components[i], neighbor)
+            neighbor = graph.get(neighbor, None)[0]
+
+    return components
+
+
 def rgcli(X, y, k_e, k_i, nt):
     """
     Performs the Regularized Graph-based Consistency-based Labeling and Instance (RGCLI) algorithm.

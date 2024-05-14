@@ -73,8 +73,8 @@ class CostComplexityPruning:
 
         while len(inner_nodes) > 0:
 
-            training_errors_nodes = [0] * len(inner_nodes)  # R(Tt)
-            training_errors_subtrees = [0] * len(inner_nodes)  # R(t)
+            training_errors_nodes = [0] * len(inner_nodes)  # R(t)
+            training_errors_subtrees = [0] * len(inner_nodes)  # R(Tt)
             objetive_function = [0] * len(inner_nodes)  # g(t)
 
             for idx, t in enumerate(inner_nodes):
