@@ -13,21 +13,23 @@ import numpy as np
 from scipy.spatial.distance import minkowski
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.neighbors import KDTree
+from collections import deque
+from scipy.spatial.distance import cdist
 
 
-def gbili(points, labels, k):
-    D = np.sqrt(np.sum((points[None, :] - points[:, None]) ** 2, -1))
+def gbili(X, y, k):
+    D = cdist(X, X)
 
-    labeled = np.where(np.array(labels) != -1)[0]
+    labeled = np.where(np.array(y) != -1)[0]
 
     graph = {}
     knn_list = {}
     m_knn_list = {}
 
-    for i in range(len(points)):
+    for i in range(len(X)):
         # Find k-nearest neighbors
         k_nearest_neighbors = []
-        for j in range(len(points)):
+        for j in range(len(X)):
             if i != j:
                 k_nearest_neighbors.append((j, D[i][j]))
         k_nearest_neighbors.sort(key=lambda x: x[1])
@@ -36,7 +38,7 @@ def gbili(points, labels, k):
 
         m_k_nearest_neighbors = []
         for j in k_nearest_neighbors:
-            neighbors_of_j = [w for w in range(len(points)) if w != j]
+            neighbors_of_j = [w for w in range(len(X)) if w != j]
             distances = [D[j][w] for w in neighbors_of_j]
             nearest_neighbors_of_j = [w for _, w in sorted(zip(distances, neighbors_of_j))][:k]
 
@@ -48,34 +50,69 @@ def gbili(points, labels, k):
         min_neighbor = None
         for j in m_k_nearest_neighbors:
             for l in labeled:
-                distance = np.linalg.norm(points[i] - points[j]) + np.linalg.norm(points[j] - points[l])
+                distance = D[i][j] + D[j][l]
                 if distance < min_sum_distance:
                     min_sum_distance = distance
                     min_neighbor = j
-        graph[i] = [min_neighbor]
+        graph[i] = [min_neighbor] if min_neighbor else []
 
-    components = search_components(graph)
+    component_membership, components = search_components(graph)
 
-    for i in range(len(points)):
-        if len(np.intersect1d(components[i], labeled)) == 0:
+    components_with_labeled = set()
+    for component, members in components.items():
+        if len(np.intersect1d(members, labeled)) > 0:
+            components_with_labeled.add(component)
+
+    for i in range(len(X)):
+        if component_membership[i] in components_with_labeled:
             for k in knn_list[i]:
-                if len(np.intersect1d(components[k], labeled)) > 0:
+                if component_membership[k] in components_with_labeled:
                     graph[i].append(k)
 
-    return graph
+    E = []
+    W = {}
+
+    for node, neighbors in graph.items():
+        for neighbor in neighbors:
+            edge = (node, neighbor)
+            E.append(edge)
+            W[edge] = 1
+
+    return list(range(len(X))), E, W
 
 
 def search_components(graph):
+    visited = set()
+    component_membership = {}
     components = {}
-    for i in graph:
-        components[i] = np.array([i])
-        neighbor = graph[i][0]
-        while neighbor:
-            if neighbor in components[i]: break
-            components[i] = np.append(components[i], neighbor)
-            neighbor = graph.get(neighbor, None)[0]
 
-    return components
+    actual_component = 0
+
+    for i in graph:
+
+        if i in visited:
+            continue
+
+        visited.add(i)
+        node_queue = deque([i])
+
+        while node_queue:
+            current = node_queue.popleft()
+            component_membership[current] = actual_component
+
+            if actual_component not in components:
+                components[actual_component] = [current]
+            else:
+                components[actual_component].append(current)
+
+            for neighbor in graph[current]:
+                if neighbor not in visited:
+                    visited.add(neighbor)
+                    node_queue.append(neighbor)
+
+        actual_component += 1
+
+    return component_membership, components
 
 
 def rgcli(X, y, k_e, k_i, nt):
