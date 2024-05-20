@@ -10,9 +10,11 @@ Description: Graph based Semi-supervised learning methods (graph construction me
 from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
+from matplotlib import pyplot as plt
 from scipy.spatial.distance import minkowski
 from sklearn.base import BaseEstimator, ClassifierMixin
-from sklearn.neighbors import KDTree
+from sklearn.metrics import accuracy_score
+from sklearn.neighbors import KDTree, KNeighborsClassifier
 from collections import deque
 from scipy.spatial.distance import cdist
 
@@ -23,32 +25,13 @@ def gbili(X, y, k):
     labeled = np.where(np.array(y) != -1)[0]
 
     graph = {}
-    knn_list = {}
-    m_knn_list = {}
+    knn = {i: sorted_neighbors[1:k + 1] for i, sorted_neighbors in enumerate(np.argsort(D, axis=1))}
+    m_knn = {i: [j for j in knn[i] if i in knn[j]] for i in range(len(X))}
 
     for i in range(len(X)):
-        # Find k-nearest neighbors
-        k_nearest_neighbors = []
-        for j in range(len(X)):
-            if i != j:
-                k_nearest_neighbors.append((j, D[i][j]))
-        k_nearest_neighbors.sort(key=lambda x: x[1])
-        k_nearest_neighbors = [j for j, _ in k_nearest_neighbors[:k]]
-        knn_list[i] = k_nearest_neighbors
-
-        m_k_nearest_neighbors = []
-        for j in k_nearest_neighbors:
-            neighbors_of_j = [w for w in range(len(X)) if w != j]
-            distances = [D[j][w] for w in neighbors_of_j]
-            nearest_neighbors_of_j = [w for _, w in sorted(zip(distances, neighbors_of_j))][:k]
-
-            if i in nearest_neighbors_of_j:
-                m_k_nearest_neighbors.append(j)
-        m_knn_list[i] = m_k_nearest_neighbors
-
         min_sum_distance = float('inf')
         min_neighbor = None
-        for j in m_k_nearest_neighbors:
+        for j in m_knn[i]:
             for l in labeled:
                 distance = D[i][j] + D[j][l]
                 if distance < min_sum_distance:
@@ -60,12 +43,12 @@ def gbili(X, y, k):
 
     components_with_labeled = set()
     for component, members in components.items():
-        if len(np.intersect1d(members, labeled)) > 0:
+        if any(i in members for i in labeled):
             components_with_labeled.add(component)
 
     for i in range(len(X)):
         if component_membership[i] in components_with_labeled:
-            for k in knn_list[i]:
+            for k in knn[i]:
                 if component_membership[k] in components_with_labeled:
                     graph[i].append(k)
 
@@ -350,8 +333,10 @@ class GSSLTransductive(BaseEstimator, ClassifierMixin):
 
         X, y = llgcl_dataset_order(X, y)
 
-        V, E, W = rgcli(X, y, self.k_e, self.k_i, self.nt)
+        # V, E, W = rgcli(X, y, self.k_e, self.k_i, self.nt)
 
+        V, E, W = gbili(X, y, self.k_e)
+        print("DONE")
         return llgcl(X, y, W, self.alpha, self.iter_max, self.threshold)
 
 
@@ -451,3 +436,39 @@ class GSSLInductive(BaseEstimator, ClassifierMixin):
         V, E, W = rgcli(X_extend, y_extend, self.k_e, self.k_i, self.nt)
 
         return llgcl(X_extend, y_extend, W, self.alpha, self.iter_max, self.threshold)[len(self.X):]
+
+
+if __name__ == '__main__':
+    from ucimlrepo import fetch_ucirepo
+
+    fetch = fetch_ucirepo(id=53)
+
+    dataset = fetch.data.features.values
+    real_targets = np.ravel(fetch.data.targets)
+    labels = np.copy(real_targets)
+
+    num_samples_to_unlabel = int(0.2 * len(labels))
+    unlabeled_indices = np.random.choice(len(labels), num_samples_to_unlabel, replace=False)
+    labels[unlabeled_indices] = -1
+
+    no_labeled = np.where(labels == -1)[0]
+    labeled = np.where(labels != -1)[0]
+
+    dataset_labeled = dataset[labeled, :]
+    labels_labeled = labels[labeled]
+
+    dataset_no_labeled = dataset[no_labeled, :]
+    labels_no_labeled = labels[no_labeled]
+
+    X = np.concatenate((dataset_labeled, dataset_no_labeled))
+    y = np.hstack((labels_labeled, labels_no_labeled))
+
+    trans = GSSLTransductive()
+
+    pred = trans.fit_predict(X, y)
+
+    print("Accuracy GSSL:", accuracy_score(real_targets[no_labeled], pred[len(labeled):]))
+
+    knn = KNeighborsClassifier(n_neighbors=5)
+    knn.fit(dataset_labeled, labels_labeled)
+    print("Accuracy KNN:", accuracy_score(real_targets[no_labeled], knn.predict(dataset_no_labeled)))
