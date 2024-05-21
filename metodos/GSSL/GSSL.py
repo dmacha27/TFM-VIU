@@ -6,20 +6,35 @@ Email: dmacha@ubu.es / achacbmb3@gmail.com
 Last Modified: 13/05/2024
 Description: Graph based Semi-supervised learning methods (graph construction methods and label inference methods)
 """
-
 from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
-from matplotlib import pyplot as plt
 from scipy.spatial.distance import minkowski
 from sklearn.base import BaseEstimator, ClassifierMixin
-from sklearn.metrics import accuracy_score
-from sklearn.neighbors import KDTree, KNeighborsClassifier
+from sklearn.neighbors import KDTree
 from collections import deque
 from scipy.spatial.distance import cdist
 
 
 def gbili(X, y, k):
+    """
+    Graph-based on informativeness of labeled instances (GBILI).
+
+    Parameters
+    ----------
+    X : array-like or sparse matrix, shape (n_samples, n_features)
+        The input samples.
+    y : array-like, shape (n_samples,)
+        The target values. Unlabeled instances are marked with -1.
+    k : int
+        Number of neighbors.
+
+    Returns
+    -------
+    W : dict
+        Dictionary representing the graph edges and weights.
+    """
+
     D = cdist(X, X)
 
     labeled = np.where(np.array(y) != -1)[0]
@@ -39,12 +54,7 @@ def gbili(X, y, k):
                     min_neighbor = j
         graph[i] = [min_neighbor] if min_neighbor else []
 
-    component_membership, components = search_components(graph)
-
-    components_with_labeled = set()
-    for component, members in components.items():
-        if any(i in members for i in labeled):
-            components_with_labeled.add(component)
+    component_membership, components_with_labeled = search_components(graph, set(labeled))
 
     for i in range(len(X)):
         if component_membership[i] in components_with_labeled:
@@ -52,22 +62,37 @@ def gbili(X, y, k):
                 if component_membership[k] in components_with_labeled:
                     graph[i].append(k)
 
-    E = []
     W = {}
 
     for node, neighbors in graph.items():
         for neighbor in neighbors:
-            edge = (node, neighbor)
-            E.append(edge)
-            W[edge] = 1
+            W[(node, neighbor)] = 1
 
-    return list(range(len(X))), E, W
+    return W
 
 
-def search_components(graph):
+def search_components(graph, labeled_set):
+    """
+    Searches connected components in a graph.
+
+    Parameters
+    ----------
+    graph : dict
+        Dictionary representing the graph.
+    labeled_set : set
+        Set of labeled nodes.
+
+    Returns
+    -------
+    component_membership : dict
+        Dictionary containing the component membership for each node.
+    components_with_labeled : set
+        Set of components containing at least one labeled node.
+    """
+
     visited = set()
     component_membership = {}
-    components = {}
+    components_with_labeled = set()
 
     actual_component = 0
 
@@ -83,10 +108,8 @@ def search_components(graph):
             current = node_queue.popleft()
             component_membership[current] = actual_component
 
-            if actual_component not in components:
-                components[actual_component] = [current]
-            else:
-                components[actual_component].append(current)
+            if current in labeled_set:
+                components_with_labeled.add(actual_component)
 
             for neighbor in graph[current]:
                 if neighbor not in visited:
@@ -95,7 +118,7 @@ def search_components(graph):
 
         actual_component += 1
 
-    return component_membership, components
+    return component_membership, components_with_labeled
 
 
 def rgcli(X, y, k_e, k_i, nt):
@@ -124,14 +147,13 @@ def rgcli(X, y, k_e, k_i, nt):
 
     Returns
     -------
-    GL : tuple
-        Tuple containing the graph vertices, edges, and weights.
+    W : dict
+        Dictionary representing the graph edges and weights.
     """
 
     labeled = np.where(np.array(y) != -1)[0]
 
     V, E, W = list(range(len(X))), [], dict()
-    GL = (V, E, W)
 
     kdtree = KDTree(X)
     l_kdtree = KDTree(X[labeled, :])
@@ -170,10 +192,10 @@ def rgcli(X, y, k_e, k_i, nt):
     with ThreadPoolExecutor(max_workers=nt) as executor:
         executor.map(SearchRGCLI, T)
 
-    return GL
+    return W
 
 
-def llgcl(X, y, W_rgcli, alpha, iter_max, threshold):
+def llgcl(X, y, W_graph, alpha, iter_max, threshold):
     """
     Performs label propagation using the Learning with Local and Global Consistency (LLGC) algorithm.
 
@@ -188,7 +210,7 @@ def llgcl(X, y, W_rgcli, alpha, iter_max, threshold):
         The input samples.
     y : array-like, shape (n_samples,)
         The target values. Unlabeled instances are marked with -1.
-    W_rgcli : dict
+    W_graph : dict
         Dictionary containing the weighted edges.
     alpha : float
         The alpha parameter for label propagation.
@@ -212,11 +234,11 @@ def llgcl(X, y, W_rgcli, alpha, iter_max, threshold):
     Y = np.copy(F)
 
     W = np.zeros((len(X), len(X)))
-    for (i, j), simm in W_rgcli.items():
+    for (i, j), simm in W_graph.items():
         W[i, j] = simm
         W[j, i] = simm
 
-    D = np.diag(W.sum(axis=1))  # Sum of each row and convert to diagonal matrix
+    D = np.diag(W.sum(axis=1) + 1e-5)  # Sum of each row and convert to diagonal matrix
 
     D_sqrt_inv = np.diag(1 / np.sqrt(np.diagonal(D)))
 
@@ -283,7 +305,7 @@ class GSSLTransductive(BaseEstimator, ClassifierMixin):
         Number of edges to add to the graph.
     nt : int, default=5
         Number of threads.
-    alpha : float, default=0.7
+    alpha : float, default=0.99
         Alpha parameter for label propagation.
     iter_max : int, default=5
         Maximum number of iterations for label propagation.
@@ -293,11 +315,11 @@ class GSSLTransductive(BaseEstimator, ClassifierMixin):
     Attributes
     ----------
     k_e : int
-        Number of neighbors for the kNN graph.
+        Number of neighbors for the kNN graph (both GBILI and RGCLI).
     k_i : int
-        Number of edges to add to the graph.
+        Number of edges to add to the graph (only RGCLI).
     nt : int
-        Number of threads.
+        Number of threads (only RGCLI).
     alpha : float
         Alpha parameter for label propagation.
     iter_max : int
@@ -306,7 +328,7 @@ class GSSLTransductive(BaseEstimator, ClassifierMixin):
         Convergence threshold for label propagation.
     """
 
-    def __init__(self, k_e=5, k_i=5, nt=5, alpha=0.7, iter_max=5, threshold=0.0001):
+    def __init__(self, k_e=5, k_i=5, nt=5, alpha=0.99, iter_max=50, threshold=0.0001):
         self.k_e = k_e
         self.k_i = k_i
         self.nt = nt
@@ -314,7 +336,7 @@ class GSSLTransductive(BaseEstimator, ClassifierMixin):
         self.iter_max = iter_max
         self.threshold = threshold
 
-    def fit_predict(self, X, y):
+    def fit_predict(self, X, y, method="rgcli"):
         """
         Fits the model and predicts the labels for the input data.
 
@@ -323,7 +345,11 @@ class GSSLTransductive(BaseEstimator, ClassifierMixin):
         X : array-like or sparse matrix, shape (n_samples, n_features)
             The input samples.
         y : array-like, shape (n_samples,)
-            The target values. Unlabeled instances are marked with -1.
+            The target values. Unlabeled instances should be marked with -1.
+        method : str, optional, default="rgcli"
+            The method to create the graph (matrix):
+            - "rgcli": Uses the rgcli method.
+            - "gbili": Uses the gbili method.
 
         Returns
         -------
@@ -333,10 +359,8 @@ class GSSLTransductive(BaseEstimator, ClassifierMixin):
 
         X, y = llgcl_dataset_order(X, y)
 
-        # V, E, W = rgcli(X, y, self.k_e, self.k_i, self.nt)
+        W = rgcli(X, y, self.k_e, self.k_i, self.nt) if method == "rgcli" else gbili(X, y, self.k_e)
 
-        V, E, W = gbili(X, y, self.k_e)
-        print("DONE")
         return llgcl(X, y, W, self.alpha, self.iter_max, self.threshold)
 
 
@@ -352,7 +376,7 @@ class GSSLInductive(BaseEstimator, ClassifierMixin):
         Number of edges to add to the graph.
     nt : int, default=5
         Number of threads.
-    alpha : float, default=0.7
+    alpha : float, default=0.99
         Alpha parameter for label propagation.
     iter_max : int, default=5
         Maximum number of iterations for label propagation.
@@ -362,11 +386,11 @@ class GSSLInductive(BaseEstimator, ClassifierMixin):
     Attributes
     ----------
     k_e : int
-        Number of neighbors for the kNN graph.
+        Number of neighbors for the kNN graph (both GBILI and RGCLI).
     k_i : int
-        Number of edges to add to the graph.
+        Number of edges to add to the graph (only RGCLI).
     nt : int
-        Number of threads.
+        Number of threads (only RGCLI).
     alpha : float
         Alpha parameter for label propagation.
     iter_max : int
@@ -379,7 +403,7 @@ class GSSLInductive(BaseEstimator, ClassifierMixin):
         The target values used for fitting the model. Unlabeled instances are marked with -1.
     """
 
-    def __init__(self, k_e=5, k_i=5, nt=5, alpha=0.7, iter_max=5, threshold=0.0001):
+    def __init__(self, k_e=5, k_i=5, nt=5, alpha=0.99, iter_max=50, threshold=0.0001):
         self.k_e = k_e
         self.k_i = k_i
         self.nt = nt
@@ -389,7 +413,7 @@ class GSSLInductive(BaseEstimator, ClassifierMixin):
         self.X = None
         self.y = None
 
-    def fit(self, X, y):
+    def fit(self, X, y, method="rgcli"):
         """
         Fits the model and predicts the labels for the input data.
 
@@ -399,6 +423,10 @@ class GSSLInductive(BaseEstimator, ClassifierMixin):
             The input samples.
         y : array-like, shape (n_samples,)
             The target values. Unlabeled instances are marked with -1.
+        method : str, optional, default="rgcli"
+            The method to create the graph (matrix):
+            - "rgcli": Uses the rgcli method.
+            - "gbili": Uses the gbili method.
 
         Returns
         -------
@@ -408,14 +436,14 @@ class GSSLInductive(BaseEstimator, ClassifierMixin):
 
         X, y = llgcl_dataset_order(X, y)
 
-        V, E, W = rgcli(X, y, self.k_e, self.k_i, self.nt)
+        W = rgcli(X, y, self.k_e, self.k_i, self.nt) if method == "rgcli" else gbili(X, y, self.k_e)
 
         self.X = X
         self.y = llgcl(X, y, W, self.alpha, self.iter_max, self.threshold)
 
         return self
 
-    def predict(self, X):
+    def predict(self, X, method="rgcli"):
         """
         Predicts the labels for the input
 
@@ -423,6 +451,10 @@ class GSSLInductive(BaseEstimator, ClassifierMixin):
         ----------
         X : array-like or sparse matrix, shape (n_samples, n_features)
             The input samples.
+        method : str, optional, default="rgcli"
+            The method to create the graph (matrix):
+            - "rgcli": Uses the rgcli method.
+            - "gbili": Uses the gbili method.
 
         Returns
         -------
@@ -433,42 +465,7 @@ class GSSLInductive(BaseEstimator, ClassifierMixin):
         X_extend = np.concatenate((self.X, X))
         y_extend = np.hstack((self.y, -np.ones((len(X)))))
 
-        V, E, W = rgcli(X_extend, y_extend, self.k_e, self.k_i, self.nt)
+        W = rgcli(X_extend, y_extend, self.k_e, self.k_i, self.nt) if method == "rgcli" else gbili(X_extend, y_extend,
+                                                                                                   self.k_e)
 
         return llgcl(X_extend, y_extend, W, self.alpha, self.iter_max, self.threshold)[len(self.X):]
-
-
-if __name__ == '__main__':
-    from ucimlrepo import fetch_ucirepo
-
-    fetch = fetch_ucirepo(id=53)
-
-    dataset = fetch.data.features.values
-    real_targets = np.ravel(fetch.data.targets)
-    labels = np.copy(real_targets)
-
-    num_samples_to_unlabel = int(0.2 * len(labels))
-    unlabeled_indices = np.random.choice(len(labels), num_samples_to_unlabel, replace=False)
-    labels[unlabeled_indices] = -1
-
-    no_labeled = np.where(labels == -1)[0]
-    labeled = np.where(labels != -1)[0]
-
-    dataset_labeled = dataset[labeled, :]
-    labels_labeled = labels[labeled]
-
-    dataset_no_labeled = dataset[no_labeled, :]
-    labels_no_labeled = labels[no_labeled]
-
-    X = np.concatenate((dataset_labeled, dataset_no_labeled))
-    y = np.hstack((labels_labeled, labels_no_labeled))
-
-    trans = GSSLTransductive()
-
-    pred = trans.fit_predict(X, y)
-
-    print("Accuracy GSSL:", accuracy_score(real_targets[no_labeled], pred[len(labeled):]))
-
-    knn = KNeighborsClassifier(n_neighbors=5)
-    knn.fit(dataset_labeled, labels_labeled)
-    print("Accuracy KNN:", accuracy_score(real_targets[no_labeled], knn.predict(dataset_no_labeled)))
