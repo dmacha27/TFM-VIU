@@ -3,7 +3,7 @@ GSSL.py
 
 Author: David Martínez Acha
 Email: dmacha@ubu.es / achacbmb3@gmail.com
-Last Modified: 13/05/2024
+Last Modified: 22/05/2024
 Description: Graph based Semi-supervised learning methods (graph construction methods and label inference methods)
 """
 from concurrent.futures import ThreadPoolExecutor
