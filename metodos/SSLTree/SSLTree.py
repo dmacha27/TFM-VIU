@@ -3,7 +3,7 @@ SSLTree.py
 
 Author: David Martínez Acha
 Email: dmacha@ubu.es / achacbmb3@gmail.com
-Last Modified: 13/05/2024
+Last Modified: 26/05/2024
 Description: Semi-supervised tree (handles both labeled and unlabeled data)
 """
 
@@ -13,7 +13,7 @@ import numpy as np
 from sklearn.base import ClassifierMixin, BaseEstimator
 from sklearn.utils.validation import check_random_state
 
-from utils.Pruning import CostComplexityPruning
+from metodos.SSLTree.utils.Pruning import CostComplexityPruning
 
 
 class Node:
