@@ -175,7 +175,7 @@ class SSLTree(ClassifierMixin, BaseEstimator):
         self.selected_features = None
         self.total_var = None
         self.total_impurity = None
-        self.labels = None
+        self.classes_ = None
         self.feature_names = None
         self.depth = 0
 
@@ -376,9 +376,9 @@ class SSLTree(ClassifierMixin, BaseEstimator):
 
         # Only labelled data counts
         total_labels = len(labels_in_data[labels_in_data != -1])
-        probs = [0] * len(self.labels)
+        probs = [0] * len(self.classes_)
 
-        for i, label in enumerate(self.labels):
+        for i, label in enumerate(self.classes_):
             label_appearances = np.where(labels_in_data == label)[0]
             if label_appearances.shape[0] > 0:
                 probs[i] = label_appearances.shape[0] / total_labels
@@ -460,7 +460,7 @@ class SSLTree(ClassifierMixin, BaseEstimator):
         all_labels = np.unique(y)
 
         # Unlabelled samples must have -1 label
-        self.labels = np.sort(all_labels[all_labels != -1])
+        self.classes_ = np.sort(all_labels[all_labels != -1])
 
         self.selected_features = self._feature_selector(X.shape[1])
 
@@ -496,7 +496,7 @@ class SSLTree(ClassifierMixin, BaseEstimator):
         # Starts on root
         node = self.tree
 
-        predictions = [0] * self.labels
+        predictions = [0] * self.classes_
         while node:  # Until leaf is reached
             predictions = node.probabilities
             if x[node.feature] <= node.val_split:
@@ -544,7 +544,7 @@ class SSLTree(ClassifierMixin, BaseEstimator):
             The predicted class label for the input sample.
         """
 
-        return self.labels[np.argmax(self.single_predict_proba(x))]
+        return self.classes_[np.argmax(self.single_predict_proba(x))]
 
     def predict(self, X):
         """
@@ -567,7 +567,11 @@ class SSLTree(ClassifierMixin, BaseEstimator):
         if len(X.shape) == 1:
             raise ValueError("Expected 2D array, got 1D array instead:", X, "Use array.reshape(1, -1).")
 
-        return [self.single_predict(x) for x in X]
+        predictions = np.empty(X.shape[0])
+        for i in range(X.shape[0]):
+            predictions[i] = self.single_predict(X[i])
+
+        return predictions
 
     def text_tree(self, node, depth):
         """
@@ -592,7 +596,7 @@ class SSLTree(ClassifierMixin, BaseEstimator):
 
         if not node.left or not node.right:
             classes, quantity = np.unique(node.data[:, -1], return_counts=True)
-            return tree + "class: " + str(self.labels[np.argmax(node.probabilities)]) + " Classes distribution: " + str(
+            return tree + "class: " + str(self.classes_[np.argmax(node.probabilities)]) + " Classes distribution: " + str(
                 classes) + " " + str(quantity) + "\n"
         else:
             tree += ("feature_" + str(node.feature) if not self.feature_names else self.feature_names[
