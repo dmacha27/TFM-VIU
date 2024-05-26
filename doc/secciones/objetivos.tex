@@ -5,14 +5,25 @@
 \chapter{Objetivos}
 \label{objetivos}
 
-El objetivo general del presente trabajo es realizar una revisión bibliográfica de métodos de aprendizaje semi-supervisado, centrándose en los ámbitos de grafos y árboles para realizar posteriormente su implementación, validación y comparación con el estado del arte (algoritmos bien afianzados como Self-Training, Co-Training...).
+Los algoritmos semi-supervisados suponen un área de mucha utilidad dentro del \textit{machine learning}, sin embargo, así como para otras ramas (como el aprendizaje supervisado y no supervisado) es posible encontrar numerosas bibliotecas y algoritmos bien desarrollados y probados, para el semi-supervisado todavía hay una gran cantidad de investigación que no se ha materializado (o que si lo ha hecho, no se ha publicado).
+
+\section{Objetivo general}
+
+El objetivo general del presente trabajo es realizar una revisión bibliográfica (guiada) sobre métodos de aprendizaje semi-supervisado, centrándose en los ámbitos de grafos y árboles para realizar posteriormente una implementación y validación con otros algoritmos bien afianzados en este ámbito como Self-Training o Co-Forest.
 
 \medskip
 
-Algunos objetivos parciales identificados son:
-\begin{enumerate}[label=\destacado{\arabic*.}]
-  \setlength\itemsep{1em}
-  \item \textbf{Implementación de 2 algoritmos basados en árboles.}
+\section{Objetivos específicos}
 
-  \item \textbf{Implementación de 2 algoritmos basados en grafos.}
+Se proponen una serie de objetivos específicos que surgen a raíz de una revisión bibliográfica para evaluar los algoritmos más prometedores tanto para grafos como árboles:
+
+\begin{enumerate}[label=\destacado{\arabic*.}]
+  \setlength\itemsep{2em}
+  \item Implementación completa y desde cero de un algoritmo de construcción de árboles que permita trabajar con datos etiquetados y no etiquetados (semi-supervisado). Incluye también de la adición de algoritmos complementarios como \textit{post-pruning}.
+  \item Debido a la naturaleza de los algoritmos basados en grafos que necesitan de dos pasos separados (construcción de grafo y propagación de etiquetas), se requiere la implementación desde cero de varios algoritmos tanto de construcción de grafo como de \textit{label propagation}.
+  \item Seleccionar el/los conjuntos de datos adecuados para la experimentación de estos algoritmos, tanto los que cumplen las suposiciones del aprendizaje semi-supervisado como los que no, para una validación exhaustiva que refleje la utilización de estos algoritmos en muy diversos ámbitos. Al menos, 20 \textit{datasets}.
+  \item Codificación de experimentos adecuados para algoritmos. Previsiblemente incluirá: preprocesado de datos, codificación de validaciones cruzadas, experimentación de parámetros específicos (influencia) o graficar resultados, entre otros...
+  \item Comparación, gracias a experimentos, con algoritmos afianzados del estado del arte para la extracción de resultados y conclusiones.
 \end{enumerate}
+
+

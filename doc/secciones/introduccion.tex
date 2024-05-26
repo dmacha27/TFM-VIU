@@ -50,7 +50,7 @@ A diferencia del aprendizaje supervisado, el no supervisado no trabaja con datos
 Entre las principales aplicaciones del aprendizaje no supervisado se encuentran las siguientes:
 \vspace{-4px}
 \begin{enumerate}
-    \item \textbf{Agrupamiento (Clustering)}: Divide los datos en grupos. Los ejemplos de un grupo tendrán cierta similitud entre ellos, mientras que todos los ejemplos de ese grupo serán disimilares a los de otro grupo (y por eso se generó esa división). Algunos algoritmos necesitan conocer de antemano el número de grupos en los que dividir lo datos, otros son capaces de descubrir cuántos grupos existen~\cite{salim:usl}.
+    \item \textbf{Agrupamiento (Clustering)}: Divide los datos en grupos. Los ejemplos de un grupo tendrán cierta similitud entre ellos, mientras que todos los ejemplos de ese grupo serán disimilares a los de otro grupo (y por eso se genera esa división). Algunos algoritmos necesitan conocer de antemano el número de grupos en los que dividir lo datos, otros son capaces de descubrir cuántos grupos existen~\cite{salim:usl}.
     \item \textbf{Reducción de la dimensionalidad}: Los conjuntos de datos generalmente tiene un número bastante grande de características. Esto hace que los algoritmos de aprendizaje sean más lentos. La reducción de dimensionalidad hace referencia a la reducción de número de características tratando de no perder información al hacerlo.
     Según
    ~\cite{javatpoint:reduccionsdims} se denomina
@@ -126,7 +126,7 @@ El concepto clave de todas estas suposiciones es el de la ``similitud''
 Es por esto que la \textit{Cluster assumption} es una generalización del
 resto (o el resto son versiones de esta).
 
-Por esto, para que el que \destacado{el aprendizaje semi-supervisado mejore al supervisado}
+Por esto, para que el \destacado{el aprendizaje semi-supervisado mejore al supervisado}
 es necesario que se cumpla dicha suposición generalizada. Si no fuese así (i.e. datos no agrupables),
 el aprendizaje semi-supervisado no mejorará al supervisado~\cite{vanEngelen2020}.
 
@@ -138,6 +138,12 @@ En la figura~\ref{fig:figuras/AprendizajeSemiSupervisado.pdf} se presenta la tax
 Sin pérdida de generalidad, este trabajo estará centrado en métodos semi-supervisados basados en grafos y árboles (intrínsecamente semi-supervisados) con la comparación con otros métodos enmarcados en esta taxonomía.
 
 \clearpage
-\section{Métodos implementados}
+\section{Árboles de decisión (CART)}
 
-SSLTree
+Antes de entrar en las explicaciones teóricas es conveniente indicar que existen multitud de algoritmos que permiten la creación de árboles (ID3~\cite{quinlan1986induction}, C4.5~\cite{quinlan2014c4}, C5.0~\cite{quinlan2004c5} y CART~\cite{breiman2017classification}, entre otros).
+
+El algoritmo en el que se centrará este desarrollo será CART (Classification and regression trees) para árboles de clasificación. 
+
+\section{Grafos}
+
+\subsection{Inferencia}
