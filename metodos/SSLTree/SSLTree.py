@@ -81,7 +81,7 @@ class SSLTree(ClassifierMixin, BaseEstimator):
 
     Parameters
     ----------
-    w : float, default=0.75
+    w : float, default=0.9
         Controls the amount of supervision. Higher values for more supervision.
 
     criterion : {'entropy', 'gini'}, default='entropy'
@@ -121,7 +121,7 @@ class SSLTree(ClassifierMixin, BaseEstimator):
 
     Attributes
     ----------
-    w : float
+    w : float, default=0.9
         The value of the 'w' parameter.
 
     criterion : {'entropy', 'gini'}
@@ -151,7 +151,7 @@ class SSLTree(ClassifierMixin, BaseEstimator):
     """
 
     def __init__(self,
-                 w=0.75,
+                 w=0.9,
                  criterion='entropy',
                  splitter='best',
                  max_depth=None,
@@ -596,7 +596,8 @@ class SSLTree(ClassifierMixin, BaseEstimator):
 
         if not node.left or not node.right:
             classes, quantity = np.unique(node.data[:, -1], return_counts=True)
-            return tree + "class: " + str(self.classes_[np.argmax(node.probabilities)]) + " Classes distribution: " + str(
+            return tree + "class: " + str(
+                self.classes_[np.argmax(node.probabilities)]) + " Classes distribution: " + str(
                 classes) + " " + str(quantity) + "\n"
         else:
             tree += ("feature_" + str(node.feature) if not self.feature_names else self.feature_names[

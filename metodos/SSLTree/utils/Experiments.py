@@ -72,57 +72,36 @@ def cross_val(name, p_unlabeled="20"):
     accuracy_dt = []
     accuracy_st = []
 
-    print("PERCENTAGE:", p_unlabeled, "- DATASET:", name)
-
-    w_values = np.arange(0, 1.01, 0.01)
-
-    best_w = None
-    best_score = 0
-
-    for w in w_values:
-        run_scores = []
-
-        for k in range(1, 11):
-            train_data, test_data, train_data_label = cargar_fold(p_unlabeled, name, k)
-
-            my_tree = SSLTree(w=w)
-            my_tree.fit(train_data.iloc[:, :-1].values, train_data.iloc[:, -1].values)
-
-            run_scores.append(
-                accuracy_score(test_data.iloc[:, -1].values, my_tree.predict(test_data.iloc[:, :-1].values)))
-
-        avg_score = np.mean(run_scores)
-
-        if avg_score > best_score:
-            best_score = avg_score
-            best_w = w
-
-    print(f'Mejor w: {best_w} con accuracy: {best_score}')
-
-    for k in range(1, 11):
+    def process_fold(k):
         train_data, test_data, train_data_label = cargar_fold(p_unlabeled, name, k)
 
-        my_tree = SSLTree(w=best_w)
+        my_tree = SSLTree()
         my_tree.fit(train_data.iloc[:, :-1].values, train_data.iloc[:, -1].values)
-        # print(my_tree.export_tree())
-        # print(accuracy_score(test_data.iloc[:, -1].values, my_tree.predict(test_data.iloc[:, :-1].values)))
 
         dt = DecisionTreeClassifier()
         dt.fit(train_data_label.iloc[:, :-1].values, train_data_label.iloc[:, -1].values)
-        # print(export_text(dt))
-        # print(accuracy_score(test_data.iloc[:, -1].values, dt.predict(test_data.iloc[:, :-1].values)))
 
         self_training_model = SelfTrainingClassifier(DecisionTreeClassifier())
         self_training_model.fit(train_data.iloc[:, :-1].values, train_data.iloc[:, -1].values)
 
-        accuracy_ssl.append(
-            accuracy_score(test_data.iloc[:, -1].values, my_tree.predict(test_data.iloc[:, :-1].values)))
-        accuracy_dt.append(accuracy_score(test_data.iloc[:, -1].values, dt.predict(test_data.iloc[:, :-1].values)))
-        accuracy_st.append(accuracy_score(test_data.iloc[:, -1].values,
-                                          self_training_model.predict(test_data.iloc[:, :-1].values)))
-        print("\tFOLD", k, "- Done")
+        accuracy_ssl_k = accuracy_score(test_data.iloc[:, -1].values, my_tree.predict(test_data.iloc[:, :-1].values))
+        accuracy_dt_k = accuracy_score(test_data.iloc[:, -1].values, dt.predict(test_data.iloc[:, :-1].values))
+        accuracy_st_k = accuracy_score(test_data.iloc[:, -1].values,
+                                       self_training_model.predict(test_data.iloc[:, :-1].values))
 
-    return np.median(accuracy_ssl), np.median(accuracy_dt), np.median(accuracy_st)
+        print("\t\tFOLD", k, "- Done")
+
+        return accuracy_ssl_k, accuracy_dt_k, accuracy_st_k
+
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        results = list(executor.map(process_fold, range(1, 11)))
+
+    for accuracy_ssl_k, accuracy_dt_k, accuracy_st_k in results:
+        accuracy_ssl.append(accuracy_ssl_k)
+        accuracy_dt.append(accuracy_dt_k)
+        accuracy_st.append(accuracy_st_k)
+
+    return np.mean(accuracy_ssl), np.mean(accuracy_dt), np.mean(accuracy_st)
 
 
 def estudio_w(name, parallel=False):
