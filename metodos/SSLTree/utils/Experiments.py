@@ -67,7 +67,7 @@ def cargar_fold(p_unlabeled, name, k):
     return train_data, test_data, train_data_label
 
 
-def cross_val(name, p_unlabeled="20"):
+def cross_val(name, p_unlabeled="20", criterion="entropy"):
     accuracy_ssl = []
     accuracy_dt = []
     accuracy_st = []
@@ -75,7 +75,7 @@ def cross_val(name, p_unlabeled="20"):
     def process_fold(k):
         train_data, test_data, train_data_label = cargar_fold(p_unlabeled, name, k)
 
-        my_tree = SSLTree()
+        my_tree = SSLTree(criterion=criterion)
         my_tree.fit(train_data.iloc[:, :-1].values, train_data.iloc[:, -1].values)
 
         dt = DecisionTreeClassifier()
@@ -104,7 +104,7 @@ def cross_val(name, p_unlabeled="20"):
     return np.mean(accuracy_ssl), np.mean(accuracy_dt), np.mean(accuracy_st)
 
 
-def estudio_w(name, parallel=False):
+def estudio_w(name, parallel=False, criterion="entropy"):
     accuracies_ssl = []
 
     w_values = np.arange(0, 1.1, 0.1)
@@ -112,7 +112,7 @@ def estudio_w(name, parallel=False):
     def ejecutar_fold(k, p_unlabeled, name, w):
         train_data, test_data, _ = cargar_fold(p_unlabeled, name, k)
 
-        my_tree = SSLTree(w=w)
+        my_tree = SSLTree(w=w, criterion=criterion)
         my_tree.fit(train_data.iloc[:, :-1].values, train_data.iloc[:, -1].values)
 
         return accuracy_score(test_data.iloc[:, -1].values, my_tree.predict(test_data.iloc[:, :-1].values))
@@ -134,7 +134,7 @@ def estudio_w(name, parallel=False):
 
     accuracies_ssl = np.array(accuracies_ssl)
 
-    np.save(f"../experimentos/w/{name}.npy", np.flip(accuracies_ssl.T, axis=0))
+    np.save(f"../experimentos/w/{criterion}/{name}.npy", np.flip(accuracies_ssl.T, axis=0))
     print(f"{name} saved")
     return accuracies_ssl
 
