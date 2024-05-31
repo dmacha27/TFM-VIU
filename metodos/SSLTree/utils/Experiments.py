@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.ensemble import RandomForestClassifier
 
 from sklearn.metrics import accuracy_score
 from sklearn.semi_supervised import SelfTrainingClassifier
@@ -12,6 +13,9 @@ from sklearn.tree import DecisionTreeClassifier
 import os
 from concurrent.futures import ThreadPoolExecutor
 
+from sslearn.wrapper import CoForest
+
+from metodos.SSLTree.BaggingSSL import BaggingSSL
 from metodos.SSLTree.SSLTree import SSLTree
 
 
@@ -102,6 +106,45 @@ def cross_val(name, p_unlabeled="20", criterion="entropy"):
         accuracy_st.append(accuracy_st_k)
 
     return np.mean(accuracy_ssl), np.mean(accuracy_dt), np.mean(accuracy_st)
+
+
+def cross_val_ssl(name, p_unlabeled="20", criterion="entropy"):
+    accuracy_bagging = []
+    accuracy_coforest = []
+    accuracy_selftraining = []
+
+    def process_fold(k):
+        train_data, test_data, train_data_label = cargar_fold(p_unlabeled, name, k)
+
+        bagging = BaggingSSL(SSLTree(criterion=criterion))
+        bagging.fit(train_data.iloc[:, :-1].values, train_data.iloc[:, -1].values)
+
+        coforest = CoForest(SSLTree(criterion=criterion))
+        coforest.fit(train_data.iloc[:, :-1].values, train_data.iloc[:, -1].values)
+
+        selftraining = SelfTrainingClassifier(RandomForestClassifier(DecisionTreeClassifier()))
+        selftraining.fit(train_data.iloc[:, :-1].values, train_data.iloc[:, -1].values)
+
+        accuracy_bagging_k = accuracy_score(test_data.iloc[:, -1].values,
+                                            bagging.predict(test_data.iloc[:, :-1].values))
+        accuracy_coforest_k = accuracy_score(test_data.iloc[:, -1].values,
+                                             coforest.predict(test_data.iloc[:, :-1].values))
+        accuracy_selftraining_k = accuracy_score(test_data.iloc[:, -1].values,
+                                                 selftraining.predict(test_data.iloc[:, :-1].values))
+
+        print("\t\tFOLD", k, "- Done")
+
+        return accuracy_bagging_k, accuracy_coforest_k, accuracy_selftraining_k
+
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        results = list(executor.map(process_fold, range(1, 11)))
+
+    for accuracy_bagging_k, accuracy_coforest_k, accuracy_selftraining_k in results:
+        accuracy_bagging.append(accuracy_bagging_k)
+        accuracy_coforest.append(accuracy_coforest_k)
+        accuracy_selftraining.append(accuracy_selftraining_k)
+
+    return np.mean(accuracy_bagging), np.mean(accuracy_coforest), np.mean(accuracy_selftraining)
 
 
 def estudio_w(name, parallel=False, criterion="entropy"):
