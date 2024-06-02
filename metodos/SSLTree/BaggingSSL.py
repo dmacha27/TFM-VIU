@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from scipy.stats import mode
 from metodos.SSLTree.SSLTree import SSLTree
 import numpy as np
@@ -25,7 +27,7 @@ class BaggingSSL:
             X_train_b = X[sample]
             y_train_b = y[sample]
 
-            tree = SSLTree()
+            tree = deepcopy(self.estimator)
             tree.fit(X_train_b, y_train_b)
             self.trees.append(tree)
 

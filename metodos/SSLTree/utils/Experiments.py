@@ -116,13 +116,18 @@ def cross_val_ssl(name, p_unlabeled="20", criterion="entropy"):
     def process_fold(k):
         train_data, test_data, train_data_label = cargar_fold(p_unlabeled, name, k)
 
-        bagging = BaggingSSL(SSLTree(criterion=criterion))
+        bagging = BaggingSSL(SSLTree(criterion=criterion), n_estimators=10)
         bagging.fit(train_data.iloc[:, :-1].values, train_data.iloc[:, -1].values)
 
-        coforest = CoForest(SSLTree(criterion=criterion))
-        coforest.fit(train_data.iloc[:, :-1].values, train_data.iloc[:, -1].values)
+        while True:
+            try:
+                coforest = CoForest(SSLTree(criterion=criterion), n_estimators=10)
+                coforest.fit(train_data.iloc[:, :-1].values, train_data.iloc[:, -1].values)
+                break
+            except Exception as e:
+                print(f"Error {e}. Reintentando...")
 
-        selftraining = SelfTrainingClassifier(RandomForestClassifier(DecisionTreeClassifier()))
+        selftraining = SelfTrainingClassifier(RandomForestClassifier(criterion=criterion, n_estimators=10))
         selftraining.fit(train_data.iloc[:, :-1].values, train_data.iloc[:, -1].values)
 
         accuracy_bagging_k = accuracy_score(test_data.iloc[:, -1].values,
@@ -256,15 +261,15 @@ def plot_estudio_w(accuracies, name):
     plt.show()
 
 
-def w_heatmap(matrix, less_better=False):
+def w_heatmap(matrix, title, more_better=True):
     w_labels = ['1', '.9', '.8', '.7', '.6', '.5', '.4', '.3', '.2', '.1', '.0']
     percentage = ["10%", "20%", "30%", "40%"]
 
-    plt.figure(figsize=(4, 5))  # Tamaño ajustado
-    sns.heatmap(matrix, cmap='Blues' if less_better else 'Blues_r', linewidths=0.5, annot=True, annot_kws={"size": 10},
+    plt.figure(figsize=(4, 5))
+    sns.heatmap(matrix, cmap='Blues' if more_better else 'Blues_r', linewidths=0.5, annot=True, annot_kws={"size": 10},
                 xticklabels=percentage, yticklabels=w_labels)
 
-    plt.title('Estudio de w')
+    plt.title(title)
     plt.ylabel('Parámetro w')
     plt.xlabel('Porcentaje de etiquetados')
 

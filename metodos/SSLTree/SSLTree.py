@@ -473,7 +473,6 @@ class SSLTree(ClassifierMixin, BaseEstimator):
 
         if self.total_impurity == 0:
             self.tree = Node(data, -1, 0.0, 0, self._node_probs(data))
-            print(self.tree)
             return self
 
         self.total_var = [self._var(data[:, i]) for i in range(data.shape[1] - 1)]
