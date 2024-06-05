@@ -3,7 +3,7 @@ SSLTree.py
 
 Author: David Martínez Acha
 Email: dmacha@ubu.es / achacbmb3@gmail.com
-Last Modified: 26/05/2024
+Last Modified: 05/06/2024
 Description: Semi-supervised tree (handles both labeled and unlabeled data)
 """
 
@@ -172,7 +172,6 @@ class SSLTree(ClassifierMixin, BaseEstimator):
         self.ccp_alpha = ccp_alpha
 
         self.tree = None
-        self.selected_features = None
         self.total_var = None
         self.total_impurity = None
         self.classes_ = None
@@ -218,7 +217,7 @@ class SSLTree(ClassifierMixin, BaseEstimator):
 
         return (np.sum(np.square(X_i)) - np.square(np.sum(X_i)) / len(X_i)) if len(X_i) > 1 else 0
 
-    def _entropy_ssl(self, partitions):
+    def _entropy_ssl(self, partitions, selected_features):
         """
         Calculate entropy for the given partitions after splitting the data.
 
@@ -245,14 +244,15 @@ class SSLTree(ClassifierMixin, BaseEstimator):
 
         total_count = np.sum([len(subset) for subset in partitions])
         var = 0
-        for i in self.selected_features:
+
+        for i in selected_features:
             num = 0
             for subset in partitions:
                 num += self._var(subset[:, i]) * (len(subset) / total_count)
 
             var += (num / self.total_var[i]) if self.total_var[i] else 0
 
-        return self.w * impurity + ((1 - self.w) / (len(self.selected_features))) * var
+        return self.w * impurity + ((1 - self.w) / (len(selected_features))) * var
 
     def _split(self, data, feature, feature_val):
         """
@@ -337,7 +337,8 @@ class SSLTree(ClassifierMixin, BaseEstimator):
         best_feature = -1
         best_feature_val = -1
 
-        for feature in self.selected_features:
+        selected_features = self._feature_selector(data.shape[1] - 1)
+        for feature in selected_features:
             possible_partitions = np.unique(data[:, feature])
             # possible_partitions = (possible_values[:-1] + possible_values[1:]) / 2
             if self.splitter != 'random':
@@ -348,7 +349,7 @@ class SSLTree(ClassifierMixin, BaseEstimator):
 
             for feature_val in partition_values:
                 left, right = self._split(data, feature, feature_val)
-                entropy = self._entropy_ssl([left, right])
+                entropy = self._entropy_ssl([left, right], selected_features)
                 if entropy < best_entropy:
                     best_entropy = entropy
                     best_feature = feature
@@ -461,8 +462,6 @@ class SSLTree(ClassifierMixin, BaseEstimator):
 
         # Unlabelled samples must have -1 label
         self.classes_ = np.sort(all_labels[all_labels != -1])
-
-        self.selected_features = self._feature_selector(X.shape[1])
 
         if len(y.shape) != 2:
             y = y.reshape(-1, 1)

@@ -15,7 +15,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from sslearn.wrapper import CoForest
 
-from metodos.SSLTree.BaggingSSL import BaggingSSL
+from metodos.SSLTree.RandomForestSSL import RandomForestSSL
 from metodos.SSLTree.SSLTree import SSLTree
 
 
@@ -108,7 +108,7 @@ def cross_val(name, p_unlabeled="20", criterion="entropy"):
     return np.mean(accuracy_ssl), np.mean(accuracy_dt), np.mean(accuracy_st)
 
 
-def cross_val_ssl(name, p_unlabeled="20", criterion="entropy"):
+def cross_val_ssl(name, p_unlabeled="20", criterion="entropy", seed=42):
     accuracy_bagging = []
     accuracy_coforest = []
     accuracy_selftraining = []
@@ -116,18 +116,20 @@ def cross_val_ssl(name, p_unlabeled="20", criterion="entropy"):
     def process_fold(k):
         train_data, test_data, train_data_label = cargar_fold(p_unlabeled, name, k)
 
-        bagging = BaggingSSL(SSLTree(criterion=criterion), n_estimators=10)
+        bagging = RandomForestSSL(SSLTree(criterion=criterion, max_features="sqrt", random_state=seed), n_estimators=10,
+                                  random_state=seed)
         bagging.fit(train_data.iloc[:, :-1].values, train_data.iloc[:, -1].values)
 
         while True:
             try:
-                coforest = CoForest(SSLTree(criterion=criterion), n_estimators=10)
+                coforest = CoForest(DecisionTreeClassifier(random_state=seed), n_estimators=10, random_state=seed)
                 coforest.fit(train_data.iloc[:, :-1].values, train_data.iloc[:, -1].values)
                 break
             except Exception as e:
                 print(f"Error {e}. Reintentando...")
 
-        selftraining = SelfTrainingClassifier(RandomForestClassifier(criterion=criterion, n_estimators=10))
+        selftraining = SelfTrainingClassifier(
+            RandomForestClassifier(criterion=criterion, n_estimators=10, random_state=seed))
         selftraining.fit(train_data.iloc[:, :-1].values, train_data.iloc[:, -1].values)
 
         accuracy_bagging_k = accuracy_score(test_data.iloc[:, -1].values,
