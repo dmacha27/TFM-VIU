@@ -109,20 +109,20 @@ def cross_val(name, p_unlabeled="20", criterion="entropy"):
 
 
 def cross_val_ssl(name, p_unlabeled="20", criterion="entropy", seed=42):
-    accuracy_bagging = []
+    accuracy_randomforest = []
     accuracy_coforest = []
     accuracy_selftraining = []
 
     def process_fold(k):
         train_data, test_data, train_data_label = cargar_fold(p_unlabeled, name, k)
 
-        bagging = RandomForestSSL(SSLTree(criterion=criterion, max_features="sqrt", random_state=seed), n_estimators=10,
+        randomforest = RandomForestSSL(SSLTree(criterion=criterion, max_features="sqrt", random_state=seed), n_estimators=10,
                                   random_state=seed)
-        bagging.fit(train_data.iloc[:, :-1].values, train_data.iloc[:, -1].values)
+        randomforest.fit(train_data.iloc[:, :-1].values, train_data.iloc[:, -1].values)
 
         while True:
             try:
-                coforest = CoForest(DecisionTreeClassifier(random_state=seed), n_estimators=10, random_state=seed)
+                coforest = CoForest(SSLTree(criterion=criterion, random_state=seed), n_estimators=10, random_state=seed)
                 coforest.fit(train_data.iloc[:, :-1].values, train_data.iloc[:, -1].values)
                 break
             except Exception as e:
@@ -133,7 +133,7 @@ def cross_val_ssl(name, p_unlabeled="20", criterion="entropy", seed=42):
         selftraining.fit(train_data.iloc[:, :-1].values, train_data.iloc[:, -1].values)
 
         accuracy_bagging_k = accuracy_score(test_data.iloc[:, -1].values,
-                                            bagging.predict(test_data.iloc[:, :-1].values))
+                                            randomforest.predict(test_data.iloc[:, :-1].values))
         accuracy_coforest_k = accuracy_score(test_data.iloc[:, -1].values,
                                              coforest.predict(test_data.iloc[:, :-1].values))
         accuracy_selftraining_k = accuracy_score(test_data.iloc[:, -1].values,
@@ -146,12 +146,12 @@ def cross_val_ssl(name, p_unlabeled="20", criterion="entropy", seed=42):
     with ThreadPoolExecutor(max_workers=10) as executor:
         results = list(executor.map(process_fold, range(1, 11)))
 
-    for accuracy_bagging_k, accuracy_coforest_k, accuracy_selftraining_k in results:
-        accuracy_bagging.append(accuracy_bagging_k)
+    for accuracy_randomforest_k, accuracy_coforest_k, accuracy_selftraining_k in results:
+        accuracy_randomforest.append(accuracy_randomforest_k)
         accuracy_coforest.append(accuracy_coforest_k)
         accuracy_selftraining.append(accuracy_selftraining_k)
 
-    return np.mean(accuracy_bagging), np.mean(accuracy_coforest), np.mean(accuracy_selftraining)
+    return np.mean(accuracy_randomforest), np.mean(accuracy_coforest), np.mean(accuracy_selftraining)
 
 
 def estudio_w(name, parallel=False, criterion="entropy"):
@@ -281,18 +281,11 @@ def w_heatmap(matrix, title, more_better=True):
 
 
 names = [
-    # "abalone",
     "appendicitis",
     "australian",
-    # "automobile",
-    # "banana", best_left (puede ser porque tiene -1 en las etiquetas)
-    # "breast",
     "bupa",
-    # "chess",
     "cleveland",
-    # "coil2000", tarda demasiado
     "contraceptive",
-    # crx",
     "dermatology",
     "ecoli",
     "flare",
@@ -301,37 +294,13 @@ names = [
     "haberman",
     "heart",
     "hepatitis",
-    # "housevotes",
     "iris",
     "led7digit",
-    # "lymphography",
-    # "magic", tarda mucho
-    "mammographic",
-    "marketing",
     "monk-2",
-    "movement_libras",
-    # "mushroom",
     "nursery",
-    "page-blocks",
-    "penbased",
-    "phoneme",
-    # "pima",
-    # "ring", no hay problema, pero tarda como dos milenios (aprox)
     "saheart",
-    "satimage",
-    "segment",
-    "sonar",
-    "spambase",
-    "spectfheart",
-    # "splice",
     "tae",
-    # "texture", no hay problema, pero tarda como tres milenios (aprox)
-    "thyroid",
-    "tic-tac-toe",
-    # "titanic", tiene -1 en las etiquetas
-    "twonorm",
     "vehicle",
-    "vowel",
     "wine",
     "wisconsin",
     "yeast",
