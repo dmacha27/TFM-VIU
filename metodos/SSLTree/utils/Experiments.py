@@ -116,8 +116,9 @@ def cross_val_ssl(name, p_unlabeled="20", criterion="entropy", seed=42):
     def process_fold(k):
         train_data, test_data, train_data_label = cargar_fold(p_unlabeled, name, k)
 
-        randomforest = RandomForestSSL(SSLTree(criterion=criterion, max_features="sqrt", random_state=seed), n_estimators=10,
-                                  random_state=seed)
+        randomforest = RandomForestSSL(SSLTree(criterion=criterion, max_features="sqrt", random_state=seed),
+                                       n_estimators=10,
+                                       random_state=seed)
         randomforest.fit(train_data.iloc[:, :-1].values, train_data.iloc[:, -1].values)
 
         while True:

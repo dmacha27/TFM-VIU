@@ -2,6 +2,7 @@ from copy import deepcopy
 from scipy.stats import mode
 import numpy as np
 
+
 class RandomForestSSL:
     def __init__(self, estimator=None, n_estimators=10, random_state=None):
         self.estimator = estimator
