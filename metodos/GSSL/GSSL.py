@@ -39,9 +39,10 @@ def gbili(X, y, k):
 
     labeled = np.where(np.array(y) != -1)[0]
 
-    graph = {}
-    knn = {i: sorted_neighbors[1:k + 1] for i, sorted_neighbors in enumerate(np.argsort(D, axis=1))}
-    m_knn = {i: [j for j in knn[i] if i in knn[j]] for i in range(len(X))}
+    knn = np.argsort(D, axis=1)[:, 1:k + 1]
+    m_knn = [[j for j in knn[i] if i in knn[j]] for i in range(len(X))]
+
+    graph = {i: [] for i in range(len(X))}
 
     for i in range(len(X)):
         min_sum_distance = float('inf')
@@ -52,7 +53,8 @@ def gbili(X, y, k):
                 if distance < min_sum_distance:
                     min_sum_distance = distance
                     min_neighbor = j
-        graph[i] = [min_neighbor] if min_neighbor else []
+        if min_neighbor is not None:
+            graph[i].append(min_neighbor)
 
     component_membership, components_with_labeled = search_components(graph, set(labeled))
 
@@ -62,11 +64,7 @@ def gbili(X, y, k):
                 if component_membership[k] in components_with_labeled:
                     graph[i].append(k)
 
-    W = {}
-
-    for node, neighbors in graph.items():
-        for neighbor in neighbors:
-            W[(node, neighbor)] = 1
+    W = {(i, neighbor): 1 for i in graph for neighbor in graph[i]}
 
     return W
 
@@ -97,7 +95,6 @@ def search_components(graph, labeled_set):
     actual_component = 0
 
     for i in graph:
-
         if i in visited:
             continue
 
@@ -153,26 +150,23 @@ def rgcli(X, y, k_e, k_i, nt):
 
     labeled = np.where(np.array(y) != -1)[0]
 
-    V, E, W = list(range(len(X))), [], dict()
+    V, W = list(range(len(X))), dict()
 
-    kdtree = KDTree(X)
-    l_kdtree = KDTree(X[labeled, :])
+    # SearchKNN
+    D = cdist(X, X)
+    D_ordered = np.argsort(D, axis=1)
 
-    kNN = dict()
-    F = dict()
-    L = dict()
+    kNN = D_ordered[:, 1:k_e + 1]
+    F = D_ordered[:, -k_e]
+
+    L = np.zeros(len(D), dtype=int)
+    D_isin = np.isin(D_ordered, labeled)
+    for i in range(len(D)):
+        row = D_ordered[i][D_isin[i]]
+        L[i] = row[0] if row[0] != i else row[1]
+    # End SearchKNN
+
     T = [V[i * len(V) // nt:(i + 1) * len(V) // nt] for i in range(nt)]
-
-    def SearchKNN(T_i):
-        for v in T_i:
-            all_neighbors = kdtree.query([X[v]], k=len(X), return_distance=False)[0]
-
-            kNN[v] = all_neighbors[1:k_e + 1]
-
-            labeled_neighbors = l_kdtree.query([X[v]], k=2, return_distance=False)[0]
-            L[v] = labeled[labeled_neighbors[labeled_neighbors != v][0]]  # The labeled's domain is all X
-
-            F[v] = all_neighbors[-k_e]
 
     def SearchRGCLI(T_i):
         for vi in T_i:
@@ -182,12 +176,8 @@ def rgcli(X, y, k_e, k_i, nt):
                     e = (vj, vi)
                     epsilon[e] = minkowski(X[vi], X[vj]) + minkowski(X[vj], X[L[vj]])
             E_prime = sorted(epsilon, key=epsilon.get)[:k_i]
-            E.extend(E_prime)
             for e in E_prime:
                 W[e] = 1
-
-    with ThreadPoolExecutor(max_workers=nt) as executor:
-        executor.map(SearchKNN, T)
 
     with ThreadPoolExecutor(max_workers=nt) as executor:
         executor.map(SearchRGCLI, T)
