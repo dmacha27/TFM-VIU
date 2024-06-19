@@ -11,7 +11,6 @@ from concurrent.futures import ThreadPoolExecutor
 import numpy as np
 from scipy.spatial.distance import minkowski
 from sklearn.base import BaseEstimator, ClassifierMixin
-from sklearn.neighbors import KDTree
 from collections import deque
 from scipy.spatial.distance import cdist
 
@@ -318,7 +317,7 @@ class GSSLTransductive(BaseEstimator, ClassifierMixin):
         Convergence threshold for label propagation.
     """
 
-    def __init__(self, k_e=5, k_i=5, nt=5, alpha=0.99, iter_max=50, threshold=0.0001):
+    def __init__(self, k_e=5, k_i=5, nt=5, alpha=0.99, iter_max=400, threshold=0.0001):
         self.k_e = k_e
         self.k_i = k_i
         self.nt = nt
