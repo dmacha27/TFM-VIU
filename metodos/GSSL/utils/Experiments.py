@@ -4,11 +4,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+import os
 from sklearn.metrics import accuracy_score
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import LabelEncoder
 
-import os
 from concurrent.futures import ThreadPoolExecutor
 
 from sklearn.semi_supervised import SelfTrainingClassifier
@@ -105,7 +105,7 @@ def cross_val(name, p_unlabeled, method="knn", graph_method="transductive"):
             accuracy_k = accuracy_score(test_data.iloc[:, -1].values, clf.fit_predict(
                 np.concatenate((train_data.iloc[:, :-1].values, test_data.iloc[:, :-1].values), axis=0)
                 , np.concatenate((train_data.iloc[:, -1].values, [-1] * len(test_data.iloc[:, -1].values)))
-            , method=method)[len(train_data):])
+                , method=method)[len(train_data):])
         else:
             clf.fit(X, y)
 
@@ -122,6 +122,63 @@ def cross_val(name, p_unlabeled, method="knn", graph_method="transductive"):
         accuracy.append(accuracy_k)
 
     return np.mean(accuracy)
+
+
+def estudio_lgc_alpha(name, alpha_values=None, parallel=False, path="../experimentos/lgc_alpha/{}.npy"):
+    if alpha_values is None:
+        alpha_values = list(np.arange(0.1, 1, 0.1)) + [0.99]
+
+    accuracies = []
+
+    def ejecutar_fold(k, p_unlabeled, name, alpha):
+        train_data, test_data, _ = cargar_fold(p_unlabeled, name, k)
+
+        clf = GSSLTransductive(k_e=11, alpha=alpha)
+
+        return accuracy_score(test_data.iloc[:, -1].values, clf.fit_predict(
+            np.concatenate((train_data.iloc[:, :-1].values, test_data.iloc[:, :-1].values), axis=0)
+            , np.concatenate((train_data.iloc[:, -1].values, [-1] * len(test_data.iloc[:, -1].values)))
+            , method="gbili")[len(train_data):])
+
+    for i, p_unlabeled in enumerate(["10", "20", "30", "40"]):
+        acc = []
+        for alpha in alpha_values:
+            if parallel:
+                with ThreadPoolExecutor(max_workers=min(int(os.cpu_count() * 0.8), 10)) as executor:
+                    futures = [executor.submit(ejecutar_fold, k, p_unlabeled, name, alpha) for k in range(1, 11)]
+                    run_scores = [future.result() for future in futures]
+            else:
+                run_scores = [ejecutar_fold(k, p_unlabeled, name, alpha) for k in range(1, 11)]
+
+            acc.append(np.mean(run_scores))
+
+        accuracies.append(acc)
+        print("Dataset:", name, "P:", p_unlabeled, "- DONE")
+
+    accuracies = np.array(accuracies)
+
+    np.save(path.format(name), np.flip(accuracies.T, axis=0))
+    print(f"{name} saved")
+    return accuracies
+
+
+def alpha_heatmap(matrix, title, more_better=True, w_labels=None):
+    if w_labels is None:
+        w_labels = ['.99', '.9', '.8', '.7', '.6', '.5', '.4', '.3', '.2', '.1']
+
+    percentage = ["10%", "20%", "30%", "40%"]
+
+    plt.figure(figsize=(4, 5))
+    sns.heatmap(matrix, cmap='Blues' if more_better else 'Blues_r', linewidths=0.5, annot=True, annot_kws={"size": 10},
+                xticklabels=percentage, yticklabels=w_labels)
+
+    plt.title(title)
+    plt.ylabel('Parámetro alpha')
+    plt.xlabel('Porcentaje de etiquetados')
+
+    plt.show()
+
+    plt.show()
 
 
 names = [
@@ -141,7 +198,7 @@ names = [
     "iris",
     "led7digit",
     "monk-2",
-    #"nursery",
+    # "nursery",
     "saheart",
     "tae",
     "vehicle",

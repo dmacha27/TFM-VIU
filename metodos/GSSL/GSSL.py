@@ -217,7 +217,7 @@ def llgcl(X, y, W_graph, alpha, iter_max, threshold):
     L = np.sort(np.unique(y[y != -1]))
 
     F = np.zeros((len(X), len(L)))
-    valid_indices = np.where(y != -1)
+    valid_indices = y != -1
     F[valid_indices, np.searchsorted(L, y[valid_indices])] = 1  # Ensure correspondence with L
 
     Y = np.copy(F)
@@ -231,7 +231,7 @@ def llgcl(X, y, W_graph, alpha, iter_max, threshold):
 
     D_sqrt_inv = np.diag(1 / np.sqrt(np.diagonal(D)))
 
-    S = np.dot(np.dot(D_sqrt_inv, W), D_sqrt_inv)
+    S = D_sqrt_inv @ W @ D_sqrt_inv
 
     F_t = F
     it = 0
@@ -317,7 +317,7 @@ class GSSLTransductive(BaseEstimator, ClassifierMixin):
         Convergence threshold for label propagation.
     """
 
-    def __init__(self, k_e=5, k_i=5, nt=5, alpha=0.99, iter_max=400, threshold=0.0001):
+    def __init__(self, k_e=5, k_i=5, nt=5, alpha=0.99, iter_max=10000, threshold=0.00001):
         self.k_e = k_e
         self.k_i = k_i
         self.nt = nt
