@@ -3,7 +3,7 @@ GSSL.py
 
 Author: David Martínez Acha
 Email: dmacha@ubu.es / achacbmb3@gmail.com
-Last Modified: 22/05/2024
+Last Modified: 26/06/2024
 Description: Graph based Semi-supervised learning methods (graph construction methods and label inference methods)
 """
 from concurrent.futures import ThreadPoolExecutor
@@ -15,7 +15,7 @@ from collections import deque
 from scipy.spatial.distance import cdist
 
 
-def gbili(X, y, k):
+def gbili(X, y, k=11):
     """
     Graph-based on informativeness of labeled instances (GBILI).
 
@@ -117,7 +117,7 @@ def search_components(graph, labeled_set):
     return component_membership, components_with_labeled
 
 
-def rgcli(X, y, k_e, k_i, nt):
+def rgcli(X, y, k_e=50, k_i=2, nt=1):
     """
     Performs the Regularized Graph-based Consistency-based Labeling and Instance (RGCLI) algorithm.
 
@@ -184,9 +184,9 @@ def rgcli(X, y, k_e, k_i, nt):
     return W
 
 
-def llgcl(X, y, W_graph, alpha, iter_max, threshold):
+def lgc(X, y, W_graph, alpha, iter_max, threshold):
     """
-    Performs label propagation using the Learning with Local and Global Consistency (LLGC) algorithm.
+    Performs label propagation using the Learning with Local and Global Consistency (LGC) algorithm.
 
     This method is based on the following paper:
     "Learning with local and global consistency"
@@ -247,7 +247,7 @@ def llgcl(X, y, W_graph, alpha, iter_max, threshold):
     return L[np.argmax(F_t, axis=1)]
 
 
-def llgcl_dataset_order(X, y):
+def lgc_dataset_order(X, y):
     """
     Orders the dataset separating labeled and unlabeled instances.
 
@@ -346,11 +346,11 @@ class GSSLTransductive(BaseEstimator, ClassifierMixin):
             Predicted labels for the input data.
         """
 
-        X, y = llgcl_dataset_order(X, y)
+        X, y = lgc_dataset_order(X, y)
 
         W = rgcli(X, y, self.k_e, self.k_i, self.nt) if method == "rgcli" else gbili(X, y, self.k_e)
 
-        return llgcl(X, y, W, self.alpha, self.iter_max, self.threshold)
+        return lgc(X, y, W, self.alpha, self.iter_max, self.threshold)
 
 
 class GSSLInductive(BaseEstimator, ClassifierMixin):
@@ -423,12 +423,12 @@ class GSSLInductive(BaseEstimator, ClassifierMixin):
             Returns self.
         """
 
-        X, y = llgcl_dataset_order(X, y)
+        X, y = lgc_dataset_order(X, y)
 
         W = rgcli(X, y, self.k_e, self.k_i, self.nt) if method == "rgcli" else gbili(X, y, self.k_e)
 
         self.X = X
-        self.y = llgcl(X, y, W, self.alpha, self.iter_max, self.threshold)
+        self.y = lgc(X, y, W, self.alpha, self.iter_max, self.threshold)
 
         return self
 
@@ -457,4 +457,4 @@ class GSSLInductive(BaseEstimator, ClassifierMixin):
         W = rgcli(X_extend, y_extend, self.k_e, self.k_i, self.nt) if method == "rgcli" else gbili(X_extend, y_extend,
                                                                                                    self.k_e)
 
-        return llgcl(X_extend, y_extend, W, self.alpha, self.iter_max, self.threshold)[len(self.X):]
+        return lgc(X_extend, y_extend, W, self.alpha, self.iter_max, self.threshold)[len(self.X):]
