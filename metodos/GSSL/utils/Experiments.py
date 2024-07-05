@@ -13,7 +13,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from sklearn.semi_supervised import SelfTrainingClassifier
 
-from metodos.GSSL.GSSL import GSSLTransductive
+from metodos.GSSL.GSSL import GSSLTransductive, GSSLInductive
 
 
 def encontrar_fila_con_palabra(ruta_archivo, palabra):
@@ -124,7 +124,8 @@ def cross_val(name, p_unlabeled, method="knn", graph_method="transductive"):
     return np.mean(accuracy)
 
 
-def estudio_lgc_alpha(name, alpha_values=None, parallel=False, path="../experimentos/lgc_alpha/{}.npy"):
+def estudio_lgc_alpha(name, method, graph_method, alpha_values=None, parallel=False,
+                      path="../experimentos/lgc_alpha/{}.npy"):
     if alpha_values is None:
         alpha_values = list(np.arange(0.1, 1, 0.1)) + [0.99]
 
@@ -133,15 +134,28 @@ def estudio_lgc_alpha(name, alpha_values=None, parallel=False, path="../experime
     def ejecutar_fold(k, p_unlabeled, name, alpha):
         train_data, test_data, _ = cargar_fold(p_unlabeled, name, k)
 
-        if 'rgcli' in path:
-            clf = GSSLTransductive(k_e=50, k_i=2, nt=1, alpha=alpha)
+        if graph_method == "transductive":
+            if method == 'rgcli':
+                clf = GSSLTransductive(k_e=50, k_i=2, nt=1, alpha=alpha)
+            else:
+                clf = GSSLTransductive(k_e=11, alpha=alpha)
         else:
-            clf = GSSLTransductive(k_e=11, alpha=alpha)
+            if method == 'rgcli':
+                clf = GSSLInductive(k_e=50, k_i=2, nt=1, alpha=alpha)
+            else:
+                clf = GSSLInductive(k_e=11, alpha=alpha)
 
-        return accuracy_score(test_data.iloc[:, -1].values, clf.fit_predict(
-            np.concatenate((train_data.iloc[:, :-1].values, test_data.iloc[:, :-1].values), axis=0)
-            , np.concatenate((train_data.iloc[:, -1].values, [-1] * len(test_data.iloc[:, -1].values)))
-            , method="rgcli" if 'rgcli' in path else 'gbili')[len(train_data):])
+        if graph_method == "transductive":
+            return accuracy_score(test_data.iloc[:, -1].values, clf.fit_predict(
+                np.concatenate((train_data.iloc[:, :-1].values, test_data.iloc[:, :-1].values), axis=0)
+                , np.concatenate((train_data.iloc[:, -1].values, [-1] * len(test_data.iloc[:, -1].values)))
+                , method=method)[len(train_data):])
+
+        else:
+            clf.fit(train_data.iloc[:, :-1].values, train_data.iloc[:, -1].values, method=method)
+
+            return accuracy_score(test_data.iloc[:, -1].values,
+                                  clf.predict(test_data.iloc[:, :-1].values, method=method))
 
     for i, p_unlabeled in enumerate(["10", "20", "30", "40"]):
         acc = []
