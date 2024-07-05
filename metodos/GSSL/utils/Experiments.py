@@ -133,12 +133,15 @@ def estudio_lgc_alpha(name, alpha_values=None, parallel=False, path="../experime
     def ejecutar_fold(k, p_unlabeled, name, alpha):
         train_data, test_data, _ = cargar_fold(p_unlabeled, name, k)
 
-        clf = GSSLTransductive(k_e=11, alpha=alpha)
+        if 'rgcli' in path:
+            clf = GSSLTransductive(k_e=50, k_i=2, nt=1, alpha=alpha)
+        else:
+            clf = GSSLTransductive(k_e=11, alpha=alpha)
 
         return accuracy_score(test_data.iloc[:, -1].values, clf.fit_predict(
             np.concatenate((train_data.iloc[:, :-1].values, test_data.iloc[:, :-1].values), axis=0)
             , np.concatenate((train_data.iloc[:, -1].values, [-1] * len(test_data.iloc[:, -1].values)))
-            , method="gbili")[len(train_data):])
+            , method="rgcli" if 'rgcli' in path else 'gbili')[len(train_data):])
 
     for i, p_unlabeled in enumerate(["10", "20", "30", "40"]):
         acc = []

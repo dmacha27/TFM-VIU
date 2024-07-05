@@ -317,7 +317,7 @@ class GSSLTransductive(BaseEstimator, ClassifierMixin):
         Convergence threshold for label propagation.
     """
 
-    def __init__(self, k_e=5, k_i=5, nt=5, alpha=0.99, iter_max=10000, threshold=0.00001):
+    def __init__(self, k_e=50, k_i=2, nt=4, alpha=0.94, iter_max=10000, threshold=0.00001):
         self.k_e = k_e
         self.k_i = k_i
         self.nt = nt
@@ -392,7 +392,7 @@ class GSSLInductive(BaseEstimator, ClassifierMixin):
         The target values used for fitting the model. Unlabeled instances are marked with -1.
     """
 
-    def __init__(self, k_e=5, k_i=5, nt=5, alpha=0.99, iter_max=50, threshold=0.0001):
+    def __init__(self, k_e=50, k_i=2, nt=4, alpha=0.94, iter_max=10000, threshold=0.00001):
         self.k_e = k_e
         self.k_i = k_i
         self.nt = nt
