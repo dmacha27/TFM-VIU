@@ -282,6 +282,20 @@ def lgc_dataset_order(X, y):
     return X_ordered, y_ordered
 
 
+class GSSL(BaseEstimator, ClassifierMixin):
+    """
+    Unificar ambas clases con fit y predict.
+
+    En tranductivo el fit hará el lgc de las no etiquetadas. El predict, aunque se le pase algo, solo devolverá esas (poner un warning).
+    Incluir un fit_predict para comodidad.
+    Importante, no utilizar nada de test, solo train.
+
+    En el inductivo, se hace un fit y un predict normales. En prinicpio, el fit solo almacena el conjunto de entrenamiento.
+
+    """
+    pass
+
+
 class GSSLTransductive(BaseEstimator, ClassifierMixin):
     """
     Graph-based Semi-Supervised Learning Algorithm. Transductive method.
