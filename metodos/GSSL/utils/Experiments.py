@@ -32,6 +32,13 @@ def cargar_fold(p_unlabeled, name, k):
             f'../../datasets/{p_unlabeled}/{name}-ssl{p_unlabeled}-10-fold/{name}-ssl{p_unlabeled}/{name}-ssl{p_unlabeled}-10-{k}tra.dat',
             '@data'))
 
+    true_train_data = pd.read_csv(
+        f'../../datasets/{p_unlabeled}/{name}-ssl{p_unlabeled}-10-fold/{name}-ssl{p_unlabeled}/{name}-ssl{p_unlabeled}-10-{k}trs.dat',
+        header=None,
+        skiprows=encontrar_fila_con_palabra(
+            f'../../datasets/{p_unlabeled}/{name}-ssl{p_unlabeled}-10-fold/{name}-ssl{p_unlabeled}/{name}-ssl{p_unlabeled}-10-{k}trs.dat',
+            '@data'))
+
     test_data = pd.read_csv(
         f'../../datasets/{p_unlabeled}/{name}-ssl{p_unlabeled}-10-fold/{name}-ssl{p_unlabeled}/{name}-ssl{p_unlabeled}-10-{k}tst.dat',
         header=None,
@@ -43,10 +50,15 @@ def cargar_fold(p_unlabeled, name, k):
 
     for col in columnas_strings:
         encoder = LabelEncoder()
+
         train_data.iloc[:, col] = encoder.fit_transform(train_data.iloc[:, col])
         train_data[col] = train_data[col].apply(pd.to_numeric)
+
         test_data.iloc[:, col] = encoder.transform(test_data.iloc[:, col])
         test_data[col] = test_data[col].apply(pd.to_numeric)
+
+        true_train_data.iloc[:, col] = encoder.transform(true_train_data.iloc[:, col])
+        true_train_data[col] = true_train_data[col].apply(pd.to_numeric)
 
     if pd.api.types.is_numeric_dtype(test_data.iloc[:, -1]):
         train_data.loc[train_data.iloc[:, -1] == ' unlabeled', len(train_data.columns) - 1] = -1
@@ -59,39 +71,43 @@ def cargar_fold(p_unlabeled, name, k):
             train_data.columns) - 1] = -1
 
         test_data.iloc[:, -1] = label_encoder.transform(test_data.iloc[:, -1])
+        true_train_data.iloc[:, -1] = label_encoder.transform(true_train_data.iloc[:, -1])
 
     train_data[train_data.columns[-1]] = train_data[train_data.columns[-1]].astype(int)
     test_data[test_data.columns[-1]] = test_data[test_data.columns[-1]].astype(int)
+    true_train_data[test_data.columns[-1]] = true_train_data[test_data.columns[-1]].astype(int)
 
     train_data_label = train_data[train_data.iloc[:, -1] != -1]
+    n_unlabeled = len(train_data) - len(train_data_label)
+    true_train_data_label = true_train_data[-n_unlabeled:]
 
-    return train_data, test_data, train_data_label
+    return train_data, true_train_data_label, test_data, train_data_label
 
 
-def cross_val(name, p_unlabeled, method="knn", graph_method="transductive"):
+def cross_val(name, p_unlabeled, graph_method="knn", method="transductive"):
     accuracy = []
 
     def process_fold(k):
-        train_data, test_data, train_data_label = cargar_fold(p_unlabeled, name, k)
+        train_data, true_train_data_label, test_data, train_data_label = cargar_fold(p_unlabeled, name, k)
 
         clf = None
         supervised = False
 
-        if method == 'knn':
+        if graph_method == 'knn':
             clf = KNeighborsClassifier()
             supervised = True
 
-        if method == "selftraining":
+        if graph_method == "selftraining":
             clf = SelfTrainingClassifier(KNeighborsClassifier())
 
-        if method == "gbili":
-            if graph_method == "transductive":
+        if graph_method == "gbili":
+            if method == "transductive":
                 clf = GSSLTransductive(k_e=11)
             else:
                 clf = None
 
-        if method == "rgcli":
-            if graph_method == "transductive":
+        if graph_method == "rgcli":
+            if method == "transductive":
                 clf = GSSLTransductive()
             else:
                 clf = None
@@ -101,11 +117,11 @@ def cross_val(name, p_unlabeled, method="knn", graph_method="transductive"):
 
         accuracy_k = 0
 
-        if (method == "gbili" or method == "rgcli") and graph_method == "transductive":
+        if (graph_method == "gbili" or graph_method == "rgcli") and method == "transductive":
             accuracy_k = accuracy_score(test_data.iloc[:, -1].values, clf.fit_predict(
                 np.concatenate((train_data.iloc[:, :-1].values, test_data.iloc[:, :-1].values), axis=0)
                 , np.concatenate((train_data.iloc[:, -1].values, [-1] * len(test_data.iloc[:, -1].values)))
-                , method=method)[len(train_data):])
+                , method=graph_method)[len(train_data):])
         else:
             clf.fit(X, y)
 
@@ -124,7 +140,7 @@ def cross_val(name, p_unlabeled, method="knn", graph_method="transductive"):
     return np.mean(accuracy)
 
 
-def estudio_lgc_alpha(name, method, graph_method, alpha_values=None, parallel=False,
+def estudio_lgc_alpha(name, graph_method, method, alpha_values=None, parallel=False,
                       path="../experimentos/lgc_alpha/{}.npy"):
     if alpha_values is None:
         alpha_values = list(np.arange(0.1, 1, 0.1)) + [0.99]
@@ -132,30 +148,28 @@ def estudio_lgc_alpha(name, method, graph_method, alpha_values=None, parallel=Fa
     accuracies = []
 
     def ejecutar_fold(k, p_unlabeled, name, alpha):
-        train_data, test_data, _ = cargar_fold(p_unlabeled, name, k)
+        train_data, true_train_data_label, test_data, _ = cargar_fold(p_unlabeled, name, k)
 
-        if graph_method == "transductive":
-            if method == 'rgcli':
+        if method == "transductive":
+            if graph_method == 'rgcli':
                 clf = GSSLTransductive(k_e=50, k_i=2, nt=1, alpha=alpha)
             else:
                 clf = GSSLTransductive(k_e=11, alpha=alpha)
         else:
-            if method == 'rgcli':
+            if graph_method == 'rgcli':
                 clf = GSSLInductive(k_e=50, k_i=2, nt=1, alpha=alpha)
             else:
                 clf = GSSLInductive(k_e=11, alpha=alpha)
 
-        if graph_method == "transductive":
-            return accuracy_score(test_data.iloc[:, -1].values, clf.fit_predict(
-                np.concatenate((train_data.iloc[:, :-1].values, test_data.iloc[:, :-1].values), axis=0)
-                , np.concatenate((train_data.iloc[:, -1].values, [-1] * len(test_data.iloc[:, -1].values)))
-                , method=method)[len(train_data):])
-
+        if method == "transductive":
+            return accuracy_score(true_train_data_label.iloc[:, -1].values,
+                                  clf.fit_predict(train_data.iloc[:, :-1].values, train_data.iloc[:, -1].values,
+                                                  method=graph_method))
         else:
-            clf.fit(train_data.iloc[:, :-1].values, train_data.iloc[:, -1].values, method=method)
+            clf.fit(train_data.iloc[:, :-1].values, train_data.iloc[:, -1].values, method=graph_method)
 
             return accuracy_score(test_data.iloc[:, -1].values,
-                                  clf.predict(test_data.iloc[:, :-1].values, method=method))
+                                  clf.predict(test_data.iloc[:, :-1].values, method=graph_method))
 
     for i, p_unlabeled in enumerate(["10", "20", "30", "40"]):
         acc = []
