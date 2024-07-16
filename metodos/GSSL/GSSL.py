@@ -91,7 +91,7 @@ class GSSL(BaseEstimator, ClassifierMixin):
         Convergence threshold for label propagation.
     """
 
-    def __init__(self, k_e=50, k_i=2, nt=4, alpha=0.94, iter_max=10000, threshold=0.00001):
+    def __init__(self, k_e=50, k_i=2, nt=4, alpha=0.90, iter_max=10000, threshold=0.00001):
         self.k_e = k_e
         self.k_i = k_i
         self.nt = nt
@@ -120,7 +120,7 @@ class GSSLTransductive(GSSL):
     Graph-based Semi-Supervised Learning Algorithm. Transductive method.
     """
 
-    def __init__(self, k_e=50, k_i=2, nt=4, alpha=0.94, iter_max=10000, threshold=0.00001):
+    def __init__(self, k_e=50, k_i=2, nt=4, alpha=0.90, iter_max=10000, threshold=0.00001):
         super().__init__(k_e, k_i, nt, alpha, iter_max, threshold)
         self.y_pred_ = None
 
@@ -212,7 +212,7 @@ class GSSLInductive(GSSL):
     Graph-based Semi-Supervised Learning Algorithm. Inductive method.
     """
 
-    def __init__(self, k_e=50, k_i=2, nt=4, alpha=0.94, iter_max=10000, threshold=0.00001):
+    def __init__(self, k_e=50, k_i=2, nt=4, alpha=0.90, iter_max=10000, threshold=0.00001):
         super().__init__(k_e, k_i, nt, alpha, iter_max, threshold)
         self.X_ = None
         self.y_ = None

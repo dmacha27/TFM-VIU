@@ -84,7 +84,7 @@ def cargar_fold(p_unlabeled, name, k):
     return train_data, true_train_data_label, test_data, train_data_label
 
 
-def cross_val(name, p_unlabeled, graph_method="knn", method="transductive"):
+def cross_val(name, p_unlabeled, algorithm="knn", method="transductive"):
     accuracy = []
 
     def process_fold(k):
@@ -93,39 +93,57 @@ def cross_val(name, p_unlabeled, graph_method="knn", method="transductive"):
         clf = None
         supervised = False
 
-        if graph_method == 'knn':
+        if algorithm == 'knn':
             clf = KNeighborsClassifier()
             supervised = True
 
-        if graph_method == "selftraining":
+        if algorithm == "selftraining":
             clf = SelfTrainingClassifier(KNeighborsClassifier())
 
-        if graph_method == "gbili":
+        if algorithm == "gbili":
             if method == "transductive":
                 clf = GSSLTransductive(k_e=11)
             else:
-                clf = None
+                clf = GSSLInductive(k_e=11)
 
-        if graph_method == "rgcli":
+        if algorithm == "rgcli":
             if method == "transductive":
-                clf = GSSLTransductive()
+                clf = GSSLTransductive(k_e=50, k_i=2, nt=1)
             else:
-                clf = None
+                clf = GSSLInductive(k_e=50, k_i=2, nt=1)
 
         X = train_data_label.iloc[:, :-1].values if supervised else train_data.iloc[:, :-1].values
         y = train_data_label.iloc[:, -1].values if supervised else train_data.iloc[:, -1].values
 
         accuracy_k = 0
 
-        if (graph_method == "gbili" or graph_method == "rgcli") and method == "transductive":
-            accuracy_k = accuracy_score(test_data.iloc[:, -1].values, clf.fit_predict(
-                np.concatenate((train_data.iloc[:, :-1].values, test_data.iloc[:, :-1].values), axis=0)
-                , np.concatenate((train_data.iloc[:, -1].values, [-1] * len(test_data.iloc[:, -1].values)))
-                , method=graph_method)[len(train_data):])
-        else:
-            clf.fit(X, y)
+        if algorithm == 'knn':
+            if method == "transductive":
+                clf.fit(X, y)
+                accuracy_k = accuracy_score(true_train_data_label.iloc[:, -1].values,
+                                            clf.predict(train_data.iloc[-len(true_train_data_label):, :-1].values))
+            else:
+                clf.fit(X, y)
+                accuracy_k = accuracy_score(test_data.iloc[:, -1].values,
+                                            clf.predict(test_data.iloc[:, :-1].values))
 
-            accuracy_k = accuracy_score(test_data.iloc[:, -1].values, clf.predict(test_data.iloc[:, :-1].values))
+        if algorithm == "selftraining":
+            if method == "transductive":
+                pass
+            else:
+                clf.fit(X, y)
+                accuracy_k = accuracy_score(test_data.iloc[:, -1].values,
+                                            clf.predict(test_data.iloc[:, :-1].values))
+
+        if (algorithm == "gbili" or algorithm == "rgcli") and method == "transductive":
+            accuracy_k = accuracy_score(true_train_data_label.iloc[:, -1].values,
+                                        clf.fit_predict(train_data.iloc[:, :-1].values, train_data.iloc[:, -1].values,
+                                                        method=algorithm))
+
+        elif (algorithm == "gbili" or algorithm == "rgcli") and method == "inductive":
+            clf.fit(train_data.iloc[:, :-1].values, train_data.iloc[:, -1].values, method=algorithm)
+            accuracy_k = accuracy_score(test_data.iloc[:, -1].values,
+                                        clf.predict(test_data.iloc[:, :-1].values, method=algorithm))
 
         print("\t\tFOLD", k, "- Done")
 
