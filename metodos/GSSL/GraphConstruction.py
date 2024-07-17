@@ -57,10 +57,10 @@ def gbili(X, y, k=11):
     component_membership, components_with_labeled = search_components(graph, set(labeled))
 
     for i in range(len(X)):
-        if component_membership[i] in components_with_labeled:
-            for k in knn[i]:
-                if component_membership[k] in components_with_labeled:
-                    graph[i].append(k)
+        if component_membership[i] not in components_with_labeled:
+            for k_aux in knn[i]:
+                if component_membership[k_aux] in components_with_labeled:
+                    graph[i].append(k_aux)
 
     W = {(i, neighbor): 1 for i in graph for neighbor in graph[i]}
 
