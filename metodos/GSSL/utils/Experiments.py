@@ -13,7 +13,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from sklearn.semi_supervised import SelfTrainingClassifier
 
-from metodos.GSSL.GSSL import GSSLTransductive, GSSLInductive
+from metodos.GSSL.GSSL import GSSL
 
 
 def encontrar_fila_con_palabra(ruta_archivo, palabra):
@@ -84,7 +84,7 @@ def cargar_fold(p_unlabeled, name, k):
     return train_data, true_train_data_label, test_data, train_data_label
 
 
-def cross_val(name, p_unlabeled, algorithm="knn", method="transductive"):
+def cross_val(name, p_unlabeled, algorithm="knn"):
     accuracy = []
 
     def process_fold(k):
@@ -101,16 +101,10 @@ def cross_val(name, p_unlabeled, algorithm="knn", method="transductive"):
             clf = SelfTrainingClassifier(KNeighborsClassifier())
 
         if algorithm == "gbili":
-            if method == "transductive":
-                clf = GSSLTransductive(k_e=11)
-            else:
-                clf = GSSLInductive(k_e=11)
+            clf = GSSL(k_e=11)
 
         if algorithm == "rgcli":
-            if method == "transductive":
-                clf = GSSLTransductive(k_e=50, k_i=2, nt=1)
-            else:
-                clf = GSSLInductive(k_e=50, k_i=2, nt=1)
+            clf = GSSL(k_e=50, k_i=2, nt=1)
 
         X = train_data_label.iloc[:, :-1].values if supervised else train_data.iloc[:, :-1].values
         y = train_data_label.iloc[:, -1].values if supervised else train_data.iloc[:, -1].values
@@ -118,30 +112,15 @@ def cross_val(name, p_unlabeled, algorithm="knn", method="transductive"):
         accuracy_k = 0
 
         if algorithm == 'knn':
-            if method == "transductive":
-                clf.fit(X, y)
-                accuracy_k = accuracy_score(true_train_data_label.iloc[:, -1].values,
-                                            clf.predict(train_data.iloc[-len(true_train_data_label):, :-1].values))
-            else:
-                clf.fit(X, y)
-                accuracy_k = accuracy_score(test_data.iloc[:, -1].values,
-                                            clf.predict(test_data.iloc[:, :-1].values))
+            clf.fit(X, y)
+            accuracy_k = accuracy_score(test_data.iloc[:, -1].values, clf.predict(test_data.iloc[:, :-1].values))
 
         if algorithm == "selftraining":
-            if method == "transductive":
-                pass
-            else:
-                clf.fit(X, y)
-                accuracy_k = accuracy_score(test_data.iloc[:, -1].values,
-                                            clf.predict(test_data.iloc[:, :-1].values))
+            clf.fit(X, y)
+            accuracy_k = accuracy_score(test_data.iloc[:, -1].values, clf.predict(test_data.iloc[:, :-1].values))
 
-        if (algorithm == "gbili" or algorithm == "rgcli") and method == "transductive":
-            accuracy_k = accuracy_score(true_train_data_label.iloc[:, -1].values,
-                                        clf.fit_predict(train_data.iloc[:, :-1].values, train_data.iloc[:, -1].values,
-                                                        method=algorithm))
-
-        elif (algorithm == "gbili" or algorithm == "rgcli") and method == "inductive":
-            clf.fit(train_data.iloc[:, :-1].values, train_data.iloc[:, -1].values, method=algorithm)
+        if algorithm == "gbili" or algorithm == "rgcli":
+            clf.fit(train_data.iloc[:, :-1].values, train_data.iloc[:, -1].values)
             accuracy_k = accuracy_score(test_data.iloc[:, -1].values,
                                         clf.predict(test_data.iloc[:, :-1].values, method=algorithm))
 
@@ -158,7 +137,7 @@ def cross_val(name, p_unlabeled, algorithm="knn", method="transductive"):
     return np.mean(accuracy)
 
 
-def estudio_lgc_alpha(name, graph_method, method, alpha_values=None, parallel=False,
+def estudio_lgc_alpha(name, graph_method, alpha_values=None, parallel=False,
                       path="../experimentos/lgc_alpha/{}.npy"):
     if alpha_values is None:
         alpha_values = list(np.arange(0.1, 1, 0.1)) + [0.99]
@@ -168,26 +147,15 @@ def estudio_lgc_alpha(name, graph_method, method, alpha_values=None, parallel=Fa
     def ejecutar_fold(k, p_unlabeled, name, alpha):
         train_data, true_train_data_label, test_data, _ = cargar_fold(p_unlabeled, name, k)
 
-        if method == "transductive":
-            if graph_method == 'rgcli':
-                clf = GSSLTransductive(k_e=50, k_i=2, nt=1, alpha=alpha)
-            else:
-                clf = GSSLTransductive(k_e=11, alpha=alpha)
+        if graph_method == 'rgcli':
+            clf = GSSL(k_e=50, k_i=2, nt=1, alpha=alpha)
         else:
-            if graph_method == 'rgcli':
-                clf = GSSLInductive(k_e=50, k_i=2, nt=1, alpha=alpha)
-            else:
-                clf = GSSLInductive(k_e=11, alpha=alpha)
+            clf = GSSL(k_e=11, alpha=alpha)
 
-        if method == "transductive":
-            return accuracy_score(true_train_data_label.iloc[:, -1].values,
-                                  clf.fit_predict(train_data.iloc[:, :-1].values, train_data.iloc[:, -1].values,
-                                                  method=graph_method))
-        else:
-            clf.fit(train_data.iloc[:, :-1].values, train_data.iloc[:, -1].values, method=graph_method)
+        clf.fit(train_data.iloc[:, :-1].values, train_data.iloc[:, -1].values)
 
-            return accuracy_score(test_data.iloc[:, -1].values,
-                                  clf.predict(test_data.iloc[:, :-1].values, method=graph_method))
+        return accuracy_score(test_data.iloc[:, -1].values,
+                              clf.predict(test_data.iloc[:, :-1].values, method=graph_method))
 
     for i, p_unlabeled in enumerate(["10", "20", "30", "40"]):
         acc = []
