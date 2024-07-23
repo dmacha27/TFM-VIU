@@ -52,7 +52,10 @@ def gbili(X, y, k=11):
                     min_sum_distance = distance
                     min_neighbor = j
         if min_neighbor is not None:
-            graph[i].append(min_neighbor)
+            if min_neighbor not in graph[i]:
+                graph[i].append(min_neighbor)
+            if i not in graph[min_neighbor]:
+                graph[min_neighbor].append(i)
 
     component_membership, components_with_labeled = search_components(graph, set(labeled))
 
@@ -60,7 +63,10 @@ def gbili(X, y, k=11):
         if component_membership[i] not in components_with_labeled:
             for k_aux in knn[i]:
                 if component_membership[k_aux] in components_with_labeled:
-                    graph[i].append(k_aux)
+                    if k_aux not in graph[i]:
+                        graph[i].append(k_aux)
+                    if i not in graph[k_aux]:
+                        graph[k_aux].append(i)
 
     W = {(i, neighbor): 1 for i in graph for neighbor in graph[i]}
 
@@ -170,9 +176,9 @@ def rgcli(X, y, k_e=50, k_i=2, nt=1):
         for vi in T_i:
             epsilon = dict()
             for vj in kNN[vi]:
-                if minkowski(X[vi], X[vj]) <= minkowski(X[vj], X[F[vj]]):
+                if D[vi][vj] <= D[vj][F[vj]]:
                     e = (vj, vi)
-                    epsilon[e] = minkowski(X[vi], X[vj]) + minkowski(X[vj], X[L[vj]])
+                    epsilon[e] = D[vi][vj] + D[vj][L[vj]]
             E_prime = sorted(epsilon, key=epsilon.get)[:k_i]
             for e in E_prime:
                 W[e] = 1
