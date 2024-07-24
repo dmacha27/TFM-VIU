@@ -103,7 +103,7 @@ class GSSL(BaseEstimator, ClassifierMixin):
 
     def fit(self, X, y):
         """
-        Fits the model. In transductive configuration, the fit method only store the given training set.
+        Fits the model. The fit method only store the given training set.
 
         Parameters
         ----------
