@@ -11,7 +11,7 @@ from collections import deque
 from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
-from scipy.spatial.distance import cdist, minkowski
+from scipy.spatial.distance import cdist
 
 
 def gbili(X, y, k=11):

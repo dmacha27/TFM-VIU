@@ -14,8 +14,6 @@ from sklearn.utils.validation import check_is_fitted, check_array
 from metodos.GSSL.GraphConstruction import rgcli, gbili
 from metodos.GSSL.GraphRegularization import lgc
 
-import warnings
-
 
 def lgc_dataset_order(X, y):
     """
