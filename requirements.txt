@@ -1,7 +1,8 @@
-numpy~=1.26.4
-pandas~=2.2.2
-matplotlib~=3.8.4
-seaborn~=0.13.2
-scikit-learn~=1.4.2
-scipy~=1.13.0
-sslearn~=1.0.5.2
+pandas
+scikit-learn
+numpy
+scipy
+matplotlib
+seaborn
+sslearn
+flask

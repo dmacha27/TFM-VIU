@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizador GSSL</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pseudocode@latest/build/pseudocode.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div id="uploadDataset" class="d-flex justify-content-center align-items-center mt-5">
+    <div>
+        <div id="card_subida" class="border bg-light text-center rounded shadow-sm">
+            <div class="d-flex justify-content-center align-items-center mt-2">
+                <p class="h2 text-center title-mulish">Selección de fichero</p>
+            </div>
+            <hr class="w-100"/>
+            <br>
+            <div class="container text-center pb-5">
+                <div class="d-flex align-items-center flex-column">
+                    <div class="p-4 h-100">
+                        <div id="soltar" class="rounded-4" style="border-style: dotted">
+                            <p>Arrastra y suelta</p>
+                            <p>o</p>
+                            <input type=file id="archivo" accept=".arff,.csv" name=archivo>
+                            <label for="archivo"></label>
+                            <span id="nombre_fichero"> </span>
+                        </div>
+                    </div>
+                    <div class="mb-2 w-75">
+                        <div class="rounded-4 m-2 p-4 text-start">
+                            <span id="porcentaje_progreso">0% </span>completado<br>
+                            <div class="progress">
+                                <div id="progreso" class="progress-bar bg-warning" role="progressbar" aria-valuemin="0"
+                                     aria-valuemax="100"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <button id="selectGraphBtn" class="btn btn-secondary m-3 rounded shadow-sm" disabled>
+                            Construcción
+                        </button>
+                    </div>
+                    <div class="btn-group">
+                        <a id="fichero_prueba" class="btn btn-success">Utilizar fichero de prueba</a>
+                        <button id="mas_fichero_prueba" type="button"
+                                class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><p class="dropdown-item" id="fichero_iris">Iris</p></li>
+                            <!-- <li><p class="dropdown-item" id="fichero_breast">Breast Cancer</p></li>-->
+                            <!--<li><p class="dropdown-item" id="fichero_diabetes">Diabetes</p></li>-->
+                        </ul>
+                    </div>
+                </div>
+                <br>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="graphButtons" class="d-flex flex-column justify-content-center align-items-center"
+     style="display: none !important;">
+    <h1>Configuración</h1>
+    <div id="card_subida_class" class="border bg-light text-center rounded shadow-sm mt-2 p-4" style="display: none">
+        <label for="classSelector">Seleccione la clase:</label>
+        <select id="classSelector" class="form-select"></select>
+    </div>
+    <div class="p-3 border bg-light text-center rounded shadow-sm my-3">
+        <h3>LGC</h3>
+        <form id="lgcForm">
+            <div class="mb-3">
+                <label for="alpha" class="form-label">Alpha</label>
+                <input type="number" step="0.01" class="form-control" id="alpha" name="alpha" min="0"
+                       value="0.9"
+                       max="0.99"
+                       required>
+            </div>
+            <div class="mb-3">
+                <label for="iter_max" class="form-label">Iter Max</label>
+                <input type="number" class="form-control" id="iter_max" name="iter_max" value="10000" required>
+            </div>
+            <div class="mb-3">
+                <label for="threshold" class="form-label">Threshold</label>
+                <input type="number" step="0.00001" class="form-control" id="threshold" name="threshold"
+                       value="0.00001" min="0.00001"
+                       required>
+            </div>
+        </form>
+    </div>
+    <div class="d-flex justify-content-center">
+        <div>
+            <div class="p-3 border bg-light text-center rounded shadow-sm mx-3">
+                <h3>GBILI</h3>
+                <form id="gbiliForm">
+                    <div class="mb-3">
+                        <label for="k" class="form-label">k</label>
+                        <input type="number" class="form-control" id="k" name="k" value="11" min="1" required>
+                    </div>
+                </form>
+                <button id="gbiliBtn" class="btn btn-secondary m-3 p-3 rounded shadow-sm">GBILI</button>
+            </div>
+        </div>
+        <div>
+            <div class="p-3 border bg-light text-center rounded shadow-sm mx-3">
+                <h3>RGCLI</h3>
+                <form id="rgcliForm">
+                    <div class="mb-3">
+                        <label for="k_e" class="form-label">k_e</label>
+                        <input type="number" class="form-control" id="k_e" name="k_e" value="10" min="1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="k_i" class="form-label">k_i</label>
+                        <input type="number" class="form-control" id="k_i" name="k_i" value="2" min="1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="nt" class="form-label">nt</label>
+                        <input type="number" class="form-control" id="nt" name="nt" value="4" min="1" required disabled>
+                    </div>
+                </form>
+                <button id="rgcliBtn" class="btn btn-secondary m-3 p-3 rounded shadow-sm">RGCLI</button>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+<div id="contentContainer" class="container" style="max-width: 150%; display: none;">
+    <div id="loader" class="loader-container">
+        <div class="loader"></div>
+        <div class="text-white">Los conjuntos de datos demasiado grandes podrían tardar varios segundos.</div>
+    </div>
+    <h1 class="text-center m-4">Visualizador</h1>
+    <div class="row justify-content-around">
+        <div class="col-md-4 mb-3">
+            <div class="p-3 border bg-light text-center rounded shadow-sm">
+                <div id="legend" class="d-flex justify-content-evenly align-items-center flex-wrap"></div>
+                <div id="graphContainer">
+                    <svg id="graph"></svg>
+                </div>
+
+                <button id="resetZoomBtn" class="btn btn-secondary m-3">Reiniciar Zoom</button>
+                <div>
+                    <button id="prevBtn" class="btn btn-primary me-2">Anterior</button>
+                    <button id="nextBtn" class="btn btn-primary">Siguiente</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="p-1 border bg-light rounded shadow-sm">
+                <div id="gbili_pseudocode_container" style="display: none">
+                    <pre id="gbili_pseudocode">
+                            \begin{algorithm}
+                            \caption{Algoritmo GBILI}
+                            \begin{algorithmic}
+                            \PROCEDURE{GBILI}{}
+                                \STATE generar una matriz de distancias $D$
+                                \STATE generar una lista de puntos etiquetados $L$
+                                \STATE establecer el parámetro $K$
+                                \FOR{$i = 1$ \TO $|V|$}
+                                    \FOR{$k = 1$ \TO $K$}
+                                        \FOR{$j = 1$ \TO $|V|$}
+                                            \IF{$D(v_i, v_j)$ es el k-ésimo vecino más cercano}
+                                                \STATE Guardar $v_j$ en la \CALL{Lista-kNN}{$v_i$}
+                                            \ENDIF
+                                        \ENDFOR
+                                    \ENDFOR
+                                    \FOR{$j = 1$ \TO \CALL{Lista-kNN}{$v_i$}}
+                                        \FOR{$k = 1$ \TO $K$}
+                                            \IF{$D(v_j, v_i)$ es el k-ésimo vecino más cercano}
+                                                \STATE Guardar $v_i$ en la \CALL{M-kNN}{$v_j$}
+                                            \ENDIF
+                                        \ENDFOR
+                                    \ENDFOR
+                                    \FOR{$j = 1$ \TO \CALL{M-kNN}{$v_i$}}
+                                        \FOR{$l = 1$ \TO $|L|$}
+                                            \IF{$D(v_i, v_j) + D(v_j, v_l)$ es mínimo}
+                                                \STATE Guardar $e_{ij}$ en $G$
+                                            \ENDIF
+                                        \ENDFOR
+                                    \ENDFOR
+                                \ENDFOR
+                                \STATE Realizar BFS y devolver \CALL{Componente}{$G$}
+                                \FOR{$i = 1$ \TO $|V|$}
+                                    \IF{\CALL{Componente}{$v_i$} $\notin L$}
+                                        \FOR{$k = 1$ \TO \CALL{Lista-kNN}{$v_i$}}
+                                            \IF{\CALL{Componente}{$v_k$} $\in L$}
+                                                \STATE Guardar $e_{ik}$ en $G$
+                                            \ENDIF
+                                        \ENDFOR
+                                    \ENDIF
+                                \ENDFOR
+                                \STATE devolver $G$
+                            \ENDPROCEDURE
+                            \end{algorithmic}
+                            \end{algorithm}
+                    </pre>
+                </div>
+                <div id="rgcli_pseudocode_container" style="display: none">
+                    <pre id="rgcli_pseudocode">
+                        \begin{algorithm}
+    \caption{Algoritmo RGCLI}
+    \begin{algorithmic}
+        \STATE \textbf{Input:} número de vecinos más cercanos $k_e$, número de vecinos RGCLI $k_i$, lista de ejemplos etiquetados $L$, conjunto de datos $X$, número de hilos $nt$
+        \STATE \textbf{Output:} $GL$
+        \STATE $V \leftarrow \text{crear un conjunto de vértices a partir de } X$
+        \STATE $E, W \leftarrow \emptyset$
+        \STATE $GL \leftarrow (V, E, W)$
+        \STATE $kdtree \leftarrow \text{crear un Kd-tree a partir de } X$
+        \STATE $kNN \leftarrow \text{dict}$
+        \STATE $\mathcal{F} \leftarrow \text{dict}$
+        \STATE $\mathcal{L} \leftarrow \text{dict}$
+        \STATE $\mathcal{T} \leftarrow \{T_i : \cup_{i=1}^{nt} T_i = V, \cap_{i=1}^{nt} T_i = \emptyset \}$
+        \FOR{$T_i \in \mathcal{T}$}
+            \STATE $t \leftarrow \text{Thread}(\text{SearchKNN}(T_i, k_e, kdtree, kNN, \mathcal{L}))$
+            \STATE $t.$\CALL{start}{}
+        \ENDFOR
+        \FOR{$T_i \in \mathcal{T}$}
+            \STATE $t \leftarrow \text{Thread}(\text{SearchRGCLI}(GL, T_i, k_i, kNN, \mathcal{L}))$
+            \STATE $t.\text{start}()$
+        \ENDFOR
+        \PROCEDURE{SearchKNN}{$T$, $k_e$, $kdtree$, $kNN$, $\mathcal{L}$}
+            \FOR{vertex $v_i \in T$}
+                \STATE $kNN[v_i] \leftarrow \text{kdtree.query}(v_i, k_e)$
+                \STATE $\mathcal{L}[v_i] \leftarrow \text{encontrar puntos etiquetados más cercanos en } \mathcal{L}$
+                \STATE $\mathcal{F}[v_i] \leftarrow \text{encontrar el k-ésimo vecino más lejano de } v_i$
+            \ENDFOR
+        \ENDPROCEDURE
+        \PROCEDURE{SearchRGCLI}{$GL$, $T$, $k_i$, kNN, $\mathcal{L}$}
+            \FOR{vertex $v_i \in T$}
+                \STATE $\mathcal{E} \leftarrow \text{dict}$
+                \FOR{vertex $v_j \in kNN[v_i]$}
+                    \IF{$\text{dist}(v_i, v_j) \leq \text{dist}(v_j, \mathcal{F}[v_j])$}
+                        \STATE $e \leftarrow (v_i, v_j)$
+                        \STATE $\mathcal{E}[e] \leftarrow \text{dist}(v_i, v_j) + \text{dist}(v_j, \mathcal{L}[v_j])$
+                    \ENDIF
+                \ENDFOR
+                \STATE $E^* \leftarrow \text{obtener } k_i \text{ aristas con menor puntuación de } \mathcal{E}$
+                \STATE $E \leftarrow E^* \cup E$
+                \STATE $ w(e) \leftarrow 1 \quad \forall \, e = (v_i, v_j) \in E^* $
+            \ENDFOR
+        \ENDPROCEDURE
+    \end{algorithmic}
+\end{algorithm}
+                    </pre>
+                </div>
+                <div id="lgc_pseudocode_container" style="display: none">
+                    <pre id="lgc_pseudocode">
+                            \begin{algorithm}
+                            \caption{Algoritmo Local and Global Consistency}
+                            \begin{algorithmic}
+                                \PROCEDURE{LGC}{}
+                                    \STATE Construir la matriz de similitud $W$.
+                                    \STATE Construir la matriz $S = D^{-1/2}WD^{-1/2}$ donde $D$ es una matriz diagonal con su elemento $(i,i)$ igual a la suma de la fila $i$-ésima de $W$.
+                                    \STATE Iterar $F(t+1) = \alpha SF(t) + (1-\alpha)Y$ hasta la convergencia, donde $\alpha$ es un parámetro en $(0, 1)$.
+                                    \STATE Asumir un $F^*$ como el límite de la secuencia $\{F(t)\}$. Etiquetar cada punto $x_i$ con etiqueta $y_i = \arg \max_{j \leq c} F^*_{ij}$.
+                                \ENDPROCEDURE
+                            \end{algorithmic}
+                        \end{algorithm}
+                    </pre>
+                </div>
+            </div>
+        </div>
+        <div id="allExplanations" class="col-md-4 mb-3">
+            <div id="stepExplanation" class="p-3 border bg-light text-center rounded shadow-sm">
+                <div class="accordion" id="accordionExample">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingOne">
+                            <button class="stepTitle accordion-button" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne"
+                             data-bs-parent="#accordionExample">
+                            <div id="explanation" class="accordion-body">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="stepInfo" class="p-3 border bg-light text-center rounded shadow-sm"></div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+        integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pseudocode@latest/build/pseudocode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/katex.min.js"
+        integrity="sha512-EKW5YvKU3hpyyOcN6jQnAxO/L8gts+YdYV6Yymtl8pk9YlYFtqJgihORuRoBXK8/cOIlappdU6Ms8KdK6yBCgA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script type="module" src="{{ url_for('static', filename='js/start.js') }}"></script>
+</body>
+</html>
