@@ -147,8 +147,6 @@ def gbili_data():
     links_semi_graph = create_links_from_dict(semi_graph, value=3)
     links_graph = create_links_from_dict(graph, value=1.5)
 
-    print(m_knn)
-
     response = {
         "mapping": mapping,
 

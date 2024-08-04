@@ -197,7 +197,6 @@ export function drawGBILI(steps, components_semi, components_graph, mapping) {
     }
 
     function plotmutualneighborsMatrix(stepInfo, nodeGroup, linkGroup, M) {
-        console.log(M)
         stepInfo.innerHTML = `
           <div class="alert alert-info" role="alert">
               <p>Seleccione una fila de la tabla para mostrar los vecinos mutuos.</p>
@@ -751,7 +750,7 @@ export function drawGBILI(steps, components_semi, components_graph, mapping) {
     let titles = [
         'Cálculo de distancias',
         'Vecinos más cercanos',
-        'Vecinos mútuos',
+        'Vecinos mutuos',
         'Inicio construcción grafo',
         'Grafo final',
         'Matriz de similitud',
@@ -761,10 +760,10 @@ export function drawGBILI(steps, components_semi, components_graph, mapping) {
     ];
 
     let explanations = [
-        'En este paso se calcula la distancia a pares de cada nodo. Esta información servirá para calcular los vecinos más cercanos (y posteriormente, los vecinos mútuos).',
+        'En este paso se calcula la distancia a pares de cada nodo. Esta información servirá para calcular los vecinos más cercanos (y posteriormente, los vecinos mutuos).',
         'En este paso se obtienen los k vecinos más cercanos de cada nodo. El grafo representa el enlazamiento de cada nodo con sus vecinos más cercanos.',
-        'En este paso se obtienen los vecinos (j) de cada nodo (i) que son mútuos. Es decir, que ese vecino (j) también tiene, entre sus k vecinos más cercanos, al nodo (i). El grafo representa el enlazamiento de estos vecinos que son mútuos.',
-        'En este paso se comienza a crear el grafo final a partir de los vecinos mútuos. La intuición es obtener un vecino mutuo (j) de un nodo (i) en el que la distancia desde el nodo (i) hasta cualquier otro nodo etiquetado sea mínima <strong>pasando por el vecino (j)</strong>. Esto lo que intenta es conectar nodos que están cerca de los otros nodos etiquetados, pues durante la inferencia, nodos cercanos tienden a tener la misma etiqueta. Utilizando los vecinos mútuos se consigue reforzar esta idea, pues dos nodos que son vecinos más cercanos mútuos, son con seguridad mucho más cercanos entre ellos que con otros. <br><br> En este paso también se obtienen las componentes. Una componente es un subgrafo completamente conectado (existe un camino entre cualquier nodo) máximo (no se le puede añadir un nodo sin violar la conectividad). Este paso sirve para detectar componentes con ningún dato etiquetado.',
+        'En este paso se obtienen los vecinos (j) de cada nodo (i) que son mutuos. Es decir, que ese vecino (j) también tiene, entre sus k vecinos más cercanos, al nodo (i). El grafo representa el enlazamiento de estos vecinos que son mutuos.',
+        'En este paso se comienza a crear el grafo final a partir de los vecinos mutuos. La intuición es obtener un vecino mutuo (j) de un nodo (i) en el que la distancia desde el nodo (i) hasta cualquier otro nodo etiquetado sea mínima <strong>pasando por el vecino (j)</strong>. Esto lo que intenta es conectar nodos que están cerca de los otros nodos etiquetados, pues durante la inferencia, nodos cercanos tienden a tener la misma etiqueta. Utilizando los vecinos mutuos se consigue reforzar esta idea, pues dos nodos que son vecinos más cercanos mutuos, son con seguridad mucho más cercanos entre ellos que con otros. <br><br> En este paso también se obtienen las componentes. Una componente es un subgrafo completamente conectado (existe un camino entre cualquier nodo) máximo (no se le puede añadir un nodo sin violar la conectividad). Este paso sirve para detectar componentes con ningún dato etiquetado.',
         'En este paso se genera el grafo final. Para los nodos que se encuentran en componentes en las que no hay nodos etiquetados, se comprueba si algún vecino cercano sí que se encuentra en una componente etiquetada y en ese caso se crea un enlace entre ellos.',
         'La matriz de similitud es una matriz cuadrada y simétrica que representa los nodos que están unidos por un enlace (y que se consideran similares). <br>La matriz de etiquetas es la matriz que se verá modificada a lo largo del proceso iterativo de inferencia. Inicialmente (en este paso) contiene el conjunto de datos original. Para los datos etiquetados se marca la etiqueta correspondiente mediante un 1 en la posición.',
         'La matriz S es una versión normalizada de la matriz de similitud (W). Esto es necesario porque los nodos con alta conectividad podrían tener más importancia que otros en el proceso de inferencia.',

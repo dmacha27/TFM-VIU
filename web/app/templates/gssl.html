@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pseudocode@latest/build/pseudocode.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/7.2.0/intro.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/7.2.0/introjs.min.css"/>
 </head>
 <body>
 <div id="uploadDataset" class="d-flex justify-content-center align-items-center mt-5">
@@ -16,6 +18,9 @@
         <div id="card_subida" class="border bg-light text-center rounded shadow-sm">
             <div class="d-flex justify-content-center align-items-center mt-2">
                 <p class="h2 text-center title-mulish">Selección de fichero</p>
+            </div>
+            <div class="d-flex justify-content-center align-items-center mt-2">
+                <a id="inicio_tutorial" class="ml-5 btn btn-primary">Tutorial</a>
             </div>
             <hr class="w-100"/>
             <br>
@@ -65,6 +70,7 @@
 <div id="graphButtons" class="d-flex flex-column justify-content-center align-items-center"
      style="display: none !important;">
     <h1>Configuración</h1>
+    <a id="configuracion_tutorial" class="ml-5 btn btn-primary">Tutorial</a>
     <div id="card_subida_class" class="border bg-light text-center rounded shadow-sm mt-2 p-4" style="display: none">
         <label for="classSelector">Seleccione la clase:</label>
         <select id="classSelector" class="form-select"></select>
@@ -133,7 +139,10 @@
         <div class="loader"></div>
         <div class="text-white">Los conjuntos de datos demasiado grandes podrían tardar varios segundos.</div>
     </div>
-    <h1 class="text-center m-4">Visualizador</h1>
+    <h1 class="text-center m-1">Visualizador</h1>
+    <div class="d-flex justify-content-center align-items-center mb-1">
+        <a id="visualizacion_tutorial" class="ml-5 btn btn-primary">Tutorial</a>
+    </div>
     <div class="row justify-content-around">
         <div class="col-md-4 mb-3">
             <div class="p-3 border bg-light text-center rounded shadow-sm">
@@ -143,14 +152,14 @@
                 </div>
 
                 <button id="resetZoomBtn" class="btn btn-secondary m-3">Reiniciar Zoom</button>
-                <div>
+                <div id="controls">
                     <button id="prevBtn" class="btn btn-primary me-2">Anterior</button>
                     <button id="nextBtn" class="btn btn-primary">Siguiente</button>
                 </div>
             </div>
         </div>
         <div class="col-md-3 mb-3">
-            <div class="p-1 border bg-light rounded shadow-sm">
+            <div id="pseudocode_container" class="p-1 border bg-light rounded shadow-sm">
                 <div id="gbili_pseudocode_container" style="display: none">
                     <pre id="gbili_pseudocode">
                             \begin{algorithm}
@@ -299,4 +308,123 @@
 <script src="https://d3js.org/d3.v7.min.js"></script>
 <script type="module" src="{{ url_for('static', filename='js/start.js') }}"></script>
 </body>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let steps = [{
+            title: "Bienvenido/a",
+            intro: "¡Bienvenido/a al Visualizador GSSL! Esto es un tutorial básico."
+        },
+            {
+                element: '#card_subida',
+                intro: "En esta página puedes cargar un conjunto de datos."
+            },
+            {
+                element: '#soltar',
+                intro: "Puedes arrastrar un fichero .arff o .csv con el conjunto de datos (o seleccionar desde tu sistema de ficheros)."
+            },
+            {
+                element: '#fichero_prueba',
+                intro: "Si no dispones de un fichero, puedes hacer uso de algún fichero de prueba que existen en el servidor."
+            },
+            {
+                element: '#selectGraphBtn',
+                intro: "Una vez cargado el conjunto de datos, puedes pasar a la configuración de la ejecución."
+            }
+        ];
+
+        document.getElementById('inicio_tutorial').addEventListener('click', function () {
+            this.style.animation = "none";
+            introJs().setOptions({
+                steps: steps,
+                'nextLabel': "Siguiente",
+                'prevLabel': "Anterior",
+                'doneLabel': "Hecho",
+            }).start();
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        let steps = [{
+            element: '#card_subida_class',
+            intro: "Debes seleccionar el atributo que actúa como clase en el conjunto de datos."
+        },
+            {
+                element: '#lgcForm',
+                intro: "En este formulario puedes configurar los parámetros del algoritmo LGC."
+            },
+            {
+                element: '#gbiliForm',
+                intro: "En este formulario puedes configurar los parámetros del algoritmo GBILI."
+            },
+            {
+                element: '#rgcliForm',
+                intro: "En este formulario puedes configurar los parámetros del algoritmo GBILI. El parámetro nt está bloqueado, solo afecta a la ejecución paralela."
+            },
+            {
+                element: '#rgcliBtn',
+                intro: "Una vez establecidos los parámetros puedes seleccionar el algoritmo que deseas visualizar (GBILI o RGLCI)."
+            }
+        ];
+
+        document.getElementById('configuracion_tutorial').addEventListener('click', function () {
+            this.style.animation = "none";
+            introJs().setOptions({
+                steps: steps,
+                'nextLabel': "Siguiente",
+                'prevLabel': "Anterior",
+                'doneLabel': "Hecho",
+            }).start();
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+
+        function getSteps(step) {
+            return [{
+                element: '#graphContainer',
+                intro: "Aquí se muestra el grafo construido. Puedes interactuar con él moviendo nodos, haciendo zoom o pasando el ratón por un nodo para mostrar información."
+            },
+                {
+                    element: '#controls',
+                    intro: "Con estos controles puedes avanzar o volver atrás en los pasos de la ejecución."
+                },
+                {
+                    element: '#pseudocode_container',
+                    intro: "En esta parte podrás visualizar el paso actual en el pseudocódigo real de los algoritmos, se mostrará el paso subrayado."
+                },
+                {
+                    element: '#stepExplanation' + step,
+                    intro: "Aquí se mostrará el título que se le ha dado al paso actual junto con una explicación."
+                },
+                {
+                    element: '#stepInfo' + step,
+                    intro: "Aquí se mostrará información interesante del paso actual. La mayoría de las tablas que aparezcan son interactivas, pudiendo hace click en las filas para resaltar partes del grafo."
+                }
+            ];
+        }
+
+        document.getElementById('visualizacion_tutorial').addEventListener('click', function () {
+            let step;
+
+            document.querySelectorAll('[id^="stepInfo"]').forEach(element => {
+                if (window.getComputedStyle(element).display === 'block') {
+                    step = element.id.slice(-1);
+                }
+            });
+
+            this.style.animation = "none";
+
+
+            introJs().setOptions({
+                steps: getSteps(step),
+                nextLabel: "Siguiente",
+                prevLabel: "Anterior",
+                doneLabel: "Hecho",
+            }).start();
+        });
+    });
+
+
+</script>
 </html>
