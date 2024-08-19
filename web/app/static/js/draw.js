@@ -817,7 +817,18 @@ export function fetchGBILI(archivo, target_name, k, alpha, max_iter, threshold) 
     })
         .then(response => {
             if (!response.ok) {
-                throw new Error('Error en la petición');
+
+                document.getElementById("loader").remove();
+                $(".alert").show('medium');
+                setTimeout(function () {
+                    $(".alert").hide('medium');
+                    location.reload();
+                }, 7000);
+
+                return response.text().then(text => {
+                    document.getElementById("error_msg").innerHTML = text;
+                    throw new Error('Error en la petición');
+                });
             }
             return response.json();
         })
@@ -841,7 +852,6 @@ export function fetchGBILI(archivo, target_name, k, alpha, max_iter, threshold) 
             return {steps, components_semi, components_graph, mapping};
         })
         .catch(error => {
-            console.error('Error:', error);
             throw error;
         });
 }
@@ -1415,7 +1425,18 @@ export function fetchRGCLI(archivo, target_name, k_e, k_i, nt, alpha, max_iter, 
     })
         .then(response => {
             if (!response.ok) {
-                throw new Error('Error en la petición');
+
+                document.getElementById("loader").remove();
+                $(".alert").show('medium');
+                setTimeout(function () {
+                    $(".alert").hide('medium');
+                    location.reload();
+                }, 7000);
+
+                return response.text().then(text => {
+                    document.getElementById("error_msg").innerHTML = text;
+                    throw new Error('Error en la petición');
+                });
             }
             return response.json();
         })
@@ -1434,7 +1455,6 @@ export function fetchRGCLI(archivo, target_name, k_e, k_i, nt, alpha, max_iter, 
             return {steps, mapping};
         })
         .catch(error => {
-            console.error('Error:', error);
             throw error;
         });
 }

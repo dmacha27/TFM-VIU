@@ -13,6 +13,18 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/7.2.0/introjs.min.css"/>
 </head>
 <body>
+<style>.alert{
+  display:none;
+  position: fixed;
+  bottom: 0px;
+  right: 0px;
+  .fa {
+    margin-right:.5em;
+  }
+}</style>
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <p id="error_msg"></p>
+</div>
 <div id="uploadDataset" class="d-flex justify-content-center align-items-center mt-5">
     <div>
         <div id="card_subida" class="border bg-light text-center rounded shadow-sm">
@@ -424,7 +436,6 @@
             }).start();
         });
     });
-
 
 </script>
 </html>

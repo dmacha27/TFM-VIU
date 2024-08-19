@@ -1,7 +1,8 @@
 import io
+import json
 
 import numpy as np
-from flask import Blueprint, render_template, request, jsonify, send_from_directory
+from flask import Blueprint, render_template, request, jsonify, send_from_directory, Response
 import pandas as pd
 from scipy.io import arff
 
@@ -110,6 +111,7 @@ def descargar_fichero():
     directorio = './static/datasets/'
     return send_from_directory(directory=directorio, path=fichero + '.arff')
 
+
 @views.route('/gbili_data', methods=['POST'])
 def gbili_data():
     file = request.files['file']
@@ -211,6 +213,10 @@ def gbili_data():
         }
     }
 
+    response_json = json.dumps(response)
+    if len(response_json.encode('utf-8')) > 200 * 1024 * 1024:
+        return Response("La respuesta es demasiado grande para el servidor.", status=413)
+
     return jsonify(response)
 
 
@@ -294,5 +300,10 @@ def rgcli_data():
             }
         }
     }
+
+    response_json = json.dumps(response)
+
+    if len(response_json.encode('utf-8')) > 200 * 1024 * 1024:
+        return Response("La respuesta es demasiado grande para el servidor.", status=413)
 
     return jsonify(response)
