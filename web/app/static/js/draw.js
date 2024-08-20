@@ -802,10 +802,11 @@ export function drawGBILI(steps, components_semi, components_graph, mapping) {
 
 }
 
-export function fetchGBILI(archivo, target_name, k, alpha, max_iter, threshold) {
+export function fetchGBILI(archivo, target_name, p_unlabeled, k, alpha, max_iter, threshold) {
     let formData = new FormData();
     formData.append('file', archivo);
     formData.append('target_name', target_name);
+    formData.append('p_unlabeled', p_unlabeled);
     formData.append('k', k);
     formData.append('alpha', alpha);
     formData.append('max_iter', max_iter);
@@ -823,7 +824,7 @@ export function fetchGBILI(archivo, target_name, k, alpha, max_iter, threshold) 
                 setTimeout(function () {
                     $(".alert").hide('medium');
                     location.reload();
-                }, 7000);
+                }, 3000);
 
                 return response.text().then(text => {
                     document.getElementById("error_msg").innerHTML = text;
@@ -1408,10 +1409,11 @@ export function drawRGCLI(steps, mapping) {
 }
 
 
-export function fetchRGCLI(archivo, target_name, k_e, k_i, nt, alpha, max_iter, threshold) {
+export function fetchRGCLI(archivo, target_name, p_unlabeled, k_e, k_i, nt, alpha, max_iter, threshold) {
     let formData = new FormData();
     formData.append('file', archivo);
     formData.append('target_name', target_name);
+    formData.append('p_unlabeled', p_unlabeled);
     formData.append('k_e', k_e);
     formData.append('k_i', k_i);
     formData.append('nt', nt);
@@ -1431,7 +1433,7 @@ export function fetchRGCLI(archivo, target_name, k_e, k_i, nt, alpha, max_iter, 
                 setTimeout(function () {
                     $(".alert").hide('medium');
                     location.reload();
-                }, 7000);
+                }, 3000);
 
                 return response.text().then(text => {
                     document.getElementById("error_msg").innerHTML = text;

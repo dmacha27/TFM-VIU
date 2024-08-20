@@ -103,8 +103,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.getElementById('fichero_prueba').addEventListener('click', () => descargarFichero('iris'));
     document.getElementById('fichero_iris').addEventListener('click', () => descargarFichero('iris'));
-    //document.getElementById('fichero_breast').addEventListener('click', () => descargarFichero('breast'));
-    //document.getElementById('fichero_diabetes').addEventListener('click', () => descargarFichero('diabetes'));
+    document.getElementById('fichero_breast').addEventListener('click', () => descargarFichero('breast'));
+    document.getElementById('fichero_diabetes').addEventListener('click', () => descargarFichero('diabetes'));
 
     function descargarFichero(nombre) {
         fetch('/descargar_fichero?nombre=' + nombre)
@@ -154,12 +154,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 {lineNumber: true});
             pseudocode_elements_lgc = getElementsInDFS(document.querySelector('#lgc_pseudocode_container .ps-root'));
 
+            let p_unlabeled = document.getElementById('p_unlabeled').value;
             let alpha = document.getElementById('alpha').value;
             let iter_max = document.getElementById('iter_max').value;
             let threshold = document.getElementById('threshold').value;
             let k = document.getElementById('k').value;
 
-            fetchGBILI(archivo[0], target_name, k, alpha, iter_max, threshold)
+            fetchGBILI(archivo[0], target_name, p_unlabeled, k, alpha, iter_max, threshold)
                 .then(({steps, components_semi, components_graph, mapping}) => {
                     drawGBILI(steps, components_semi, components_graph, mapping);
                 })
@@ -193,6 +194,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 {lineNumber: true});
             pseudocode_elements_lgc = getElementsInDFS(document.querySelector('#lgc_pseudocode_container .ps-root'));
 
+            let p_unlabeled = document.getElementById('p_unlabeled').value;
             let alpha = document.getElementById('alpha').value;
             let iter_max = document.getElementById('iter_max').value;
             let threshold = document.getElementById('threshold').value;
@@ -200,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function () {
             let k_i = document.getElementById('k_i').value;
             let nt = document.getElementById('nt').value;
 
-            fetchRGCLI(archivo[0], target_name, k_e, k_i, nt, alpha, iter_max, threshold)
+            fetchRGCLI(archivo[0], target_name, p_unlabeled, k_e, k_i, nt, alpha, iter_max, threshold)
                 .then(({steps, mapping}) => {
                     drawRGCLI(steps, mapping);
                 })

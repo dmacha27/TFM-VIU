@@ -13,16 +13,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/7.2.0/introjs.min.css"/>
 </head>
 <body>
-<style>.alert{
-  display:none;
-  position: fixed;
-  bottom: 0px;
-  right: 0px;
-  .fa {
-    margin-right:.5em;
-  }
-}</style>
-<div class="alert alert-danger alert-dismissible fade show" role="alert">
+<div id="error_alert" class="alert alert-danger alert-dismissible fade show" role="alert">
     <p id="error_msg"></p>
 </div>
 <div id="uploadDataset" class="d-flex justify-content-center align-items-center mt-5">
@@ -69,8 +60,8 @@
                         </button>
                         <ul class="dropdown-menu">
                             <li><p class="dropdown-item" id="fichero_iris">Iris</p></li>
-                            <!-- <li><p class="dropdown-item" id="fichero_breast">Breast Cancer</p></li>-->
-                            <!--<li><p class="dropdown-item" id="fichero_diabetes">Diabetes</p></li>-->
+                            <li><p class="dropdown-item" id="fichero_breast">Breast Cancer</p></li>
+                            <li><p class="dropdown-item" id="fichero_diabetes">Diabetes</p></li>
                         </ul>
                     </div>
                 </div>
@@ -86,10 +77,25 @@
     <div id="card_subida_class" class="border bg-light text-center rounded shadow-sm mt-2 p-4" style="display: none">
         <label for="classSelector">Seleccione la clase:</label>
         <select id="classSelector" class="form-select"></select>
+        <script>
+            function actualizarBadgePorcentaje(valor, id_badge) {
+                let badge = document.getElementById(id_badge);
+
+                badge.innerHTML = valor.toString() + "%";
+
+            }
+        </script>
+        <label for="p_unlabeled">Porcentaje no etiquetado:</label>
+        <div class="d-flex">
+            <input class="form-range w-75" id="p_unlabeled" max="90" min="1" name="p_unlabeled"
+                   oninput="actualizarBadgePorcentaje(this.value,'p_unlabeled_badge')" required="" type="range"
+                   value="40" autocomplete="off">
+            <span id="p_unlabeled_badge" class="badge bg-primary px-3 mx-auto">40%</span>
+        </div>
     </div>
     <div class="p-3 border bg-light text-center rounded shadow-sm my-3">
         <h3>LGC</h3>
-        <form id="lgcForm">
+        <form id="lgcForm" autocomplete="off">
             <div class="mb-3">
                 <label for="alpha" class="form-label">Alpha</label>
                 <input type="number" step="0.01" class="form-control" id="alpha" name="alpha" min="0"
@@ -113,7 +119,7 @@
         <div>
             <div class="p-3 border bg-light text-center rounded shadow-sm mx-3">
                 <h3>GBILI</h3>
-                <form id="gbiliForm">
+                <form id="gbiliForm" autocomplete="off">
                     <div class="mb-3">
                         <label for="k" class="form-label">k</label>
                         <input type="number" class="form-control" id="k" name="k" value="11" min="1" required>
@@ -125,7 +131,7 @@
         <div>
             <div class="p-3 border bg-light text-center rounded shadow-sm mx-3">
                 <h3>RGCLI</h3>
-                <form id="rgcliForm">
+                <form id="rgcliForm" autocomplete="off">
                     <div class="mb-3">
                         <label for="k_e" class="form-label">k_e</label>
                         <input type="number" class="form-control" id="k_e" name="k_e" value="10" min="1" required>

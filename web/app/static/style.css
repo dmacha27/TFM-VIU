@@ -4,6 +4,13 @@ svg {
     height: auto;
 }
 
+#error_alert {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    right: 0;
+}
+
 .tooltip {
     position: absolute;
     text-align: center;

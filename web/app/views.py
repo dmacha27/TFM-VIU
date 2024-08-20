@@ -9,6 +9,7 @@ from scipy.io import arff
 from app.gssl.GraphConstruction import gbili, rgcli
 from app.gssl.GraphRegularization import lgc
 from app.gssl.utils.datasetloader import DatasetLoader
+from sklearn.model_selection import train_test_split
 
 views = Blueprint('views', __name__)
 
@@ -116,6 +117,7 @@ def descargar_fichero():
 def gbili_data():
     file = request.files['file']
     target_name = request.form['target_name']
+    p_unlabeled = float(request.form['p_unlabeled']) / 100
     k = int(request.form['k'])
     alpha = float(request.form['alpha'])
     max_iter = int(request.form['max_iter'])
@@ -127,11 +129,11 @@ def gbili_data():
     X, y, mapping, is_unlabelled = dl.get_x_y()
 
     if not is_unlabelled:
-        y[np.random.choice(len(y), int(0.8 * len(y)), replace=False)] = -1
-        """y[[23, 56, 112, 47, 3, 77, 89, 120, 130, 99, 12, 38, 141, 58, 11, 25, 105, 135, 79, 108, 8, 20, 64, 5, 6, 9, 75,
-           88,
-           15, 2, 110, 101, 123, 49, 81, 133, 32, 42, 137, 59]
-        ] = -1"""
+        y_labeled, y_unlabeled = train_test_split(y, test_size=p_unlabeled, stratify=y)
+
+        y_unlabeled[:] = -1
+
+        y = np.concatenate((y_labeled, y_unlabeled))
 
     X, y, _ = lgc_dataset_order(X, y)
 
@@ -224,6 +226,7 @@ def gbili_data():
 def rgcli_data():
     file = request.files['file']
     target_name = request.form['target_name']
+    p_unlabeled = float(request.form['p_unlabeled']) / 100
     k_e = int(request.form['k_e'])
     k_i = int(request.form['k_i'])
     nt = int(request.form['nt'])
@@ -237,7 +240,11 @@ def rgcli_data():
     X, y, mapping, is_unlabelled = dl.get_x_y()
 
     if not is_unlabelled:
-        y[np.random.choice(len(y), int(0.4 * len(y)), replace=False)] = -1
+        y_labeled, y_unlabeled = train_test_split(y, test_size=p_unlabeled, stratify=y)
+
+        y_unlabeled[:] = -1
+
+        y = np.concatenate((y_labeled, y_unlabeled))
 
     X, y, _ = lgc_dataset_order(X, y)
 
