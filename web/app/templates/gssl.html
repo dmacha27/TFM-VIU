@@ -30,15 +30,16 @@
             <div class="container text-center pb-5">
                 <div class="d-flex align-items-center flex-column">
                     <div class="p-4 h-100">
-                        <div id="soltar" class="rounded-4" style="border-style: dotted">
+                        <div id="soltar" class="rounded-4 p-2" style="border-style: dotted">
                             <p>Arrastra y suelta</p>
                             <p>o</p>
                             <input type=file id="archivo" accept=".arff,.csv" name=archivo>
                             <label for="archivo"></label>
-                            <span id="nombre_fichero"> </span>
                         </div>
                     </div>
                     <div class="mb-2 w-75">
+                        Fichero cargado:
+                        <span id="nombre_fichero"> </span>
                         <div class="rounded-4 m-2 p-4 text-start">
                             <span id="porcentaje_progreso">0% </span>completado<br>
                             <div class="progress">

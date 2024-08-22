@@ -120,6 +120,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 document.getElementById("selectGraphBtn").disabled = false;
 
+                document.getElementById("nombre_fichero").textContent = nombre + ".arff";
+
             })
             .catch(error => console.error('Error al descargar el fichero:', error));
 
