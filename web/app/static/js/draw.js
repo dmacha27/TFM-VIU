@@ -1126,7 +1126,8 @@ export function drawRGCLI(steps, mapping) {
 
     let mousemove = function (event, d) {
         Tooltip
-            .html("Nodo: " + d.id + "<br>Etiqueta: " + (d.label !== -1 ? mapping[d.label] : "Sin etiqueta"))
+            .html("Nodo: " + d.id + "<br>Etiqueta: " +
+                (d.label !== -1 ? "<span style='color:" + colorScale(d.label) + "'>" + mapping[d.label] + "</span>" : "Sin etiqueta"))
             .style("left", (event.pageX) + "px")
             .style("top", (event.pageY) + "px");
     }
