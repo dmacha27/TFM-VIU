@@ -1,0 +1,281 @@
+
+\chapter{Marco teórico}
+\label{marco-teorico}
+
+\section{Aprendizaje automático}
+
+El aprendizaje automático (\textit{machine
+learning}) según~\cite{intelligent:ml} es una rama de la Inteligencia Artificial y se trata de una técnica de análisis de datos que enseña a las computadoras a aprender de la \textbf{experiencia} (como los humanos). Para llevar a cabo este proceso, el aprendizaje automático requiere de una amplia cantidad de datos, o los necesarios para el problema específico en cuestión. Estos datos son procesados mediante algoritmos, los cuales se alimentan de ejemplos (también conocidos como instancias o prototipos). A través de estos ejemplos, los algoritmos tienen la capacidad de generalizar comportamientos ocultos.
+
+Estos algoritmos mencionados mejoran su rendimiento iterativamente y de forma automática durante su entrenamiento e incluso también durante su aprovechamiento/explotación. El aprendizaje automático ha adquirido una gran relevancia en una amplia variedad de áreas como la visión artificial, automoción, detección de anomalías o automatización, entre otras. El aprendizaje automático generalmente se clasifica en tres tipos: aprendizaje supervisado, aprendizaje no supervisado y aprendizaje por refuerzo. Sin embargo, ha surgido una nueva disciplina que se sitúa entre el aprendizaje supervisado y el no supervisado, utilizando tanto datos etiquetados como no etiquetados durante el proceso de entrenamiento~\cite{vanEngelen2020}.
+
+En la figura~\ref{fig:figuras/taxonomia.png} se presenta una clasificación del aprendizaje automático.
+
+\imagen{figuras/taxonomia.png}{Clasificación de aprendizaje automático}{Clasificación de aprendizaje automático, basado en~\cite{neova:taxonomy}.}{1}
+
+\subsection{Aprendizaje supervisado}
+\label{aprendizaje-supervisado}
+
+Los algoritmos de aprendizaje supervisado utilizan datos etiquetados durante su proceso de entrenamiento~\cite{david:sl}. Un ejemplo popular de datos etiquetados podría ser el conjunto flores de iris y las posibles etiquetas podrían ser: setosa, versicolor y virginica. Estos datos estarán formados por un conjunto de características (en el caso de las flores de iris podrían ser la longitud y ancho del sépalo y del pétalo). Estas características podrían ser categóricas, continuas o binarias~\cite{salim:sl}.
+
+Para generar un modelo correcto, estos datos son divididos en varios subconjuntos: conjunto de entrenamiento (\textit{training data set}), conjunto de validación (\textit{validation data set}) y conjunto de test (\textit{test data set}). El conjunto de entrenamiento corresponde con la porción de los datos que el algoritmo utilizará para aprender un modelo que generalice los patrones ocultos subyacentes. El conjunto de validación permite comprobar, durante el proceso de entrenamiento, que el modelo que se está generando no memoriza los datos (fenómeno conocido como sobreajuste), también sirve para finalizar el entrenamiento (e.g. el error en validación aumenta durante varias iteraciones). Una vez que el algoritmo ha generado un modelo, se utiliza el conjunto de test para comprobar el rendimiento real (una estimación)~\cite{enwiki:conjuntos}. Ningún dato de este último conjunto ha sido ``visto'' por el modelo previamente.
+
+
+En la figura~\ref{fig:figuras/AprendizajeSupervisado.PNG} se encuentra un diagrama con el funcionamiento general.
+
+\imagen{figuras/AprendizajeSupervisado.PNG}{Funcionamiento general del aprendizaje supervisado}{Funcionamiento general del aprendizaje supervisado, basado en~\cite{salim:sl}.}{1}
+
+Partiendo del concepto de etiqueta de un dato, el problema será de \textbf{clasificación} si los valores que puede tomar la etiqueta representan un conjunto finito. Por otro lado, si estos valores son continuos, el problema será de \textbf{regresión}.
+
+\begin{itemize}
+    \item \textbf{Clasificación}: Un modelo entrenado en un problema de clasificación se denomina clasificador. Ante un nuevo dato, el clasificador predecirá su etiqueta correspondiente. Por lo general, a cada valor de etiqueta se le suele llamar clase. Dependiendo de la cantidad de valores, se referirá a un problema binario o multiclase.
+
+    \item \textbf{Regresión}: En este caso, ante un nuevo dato, el modelo predecirá un valor continuo. La idea subyacente es evaluar una función (ajustada/aprendida durante el entrenamiento) dado un dato como variables de entrada.
+
+\end{itemize}
+
+
+\subsection{Aprendizaje no supervisado}
+\label{aprendizaje-no-supervisado}
+
+A diferencia del aprendizaje supervisado, el no supervisado no trabaja con datos etiquetados y clases. Según~\cite{salim:usl} esto quiere decir que nosotros no ``supervisamos'' el algoritmo. No se le añade ese conocimiento extra. Estos algoritmos intentarán descubrir patrones que se encuentren en la propia estructura de los datos (de sus características). La idea del aprendizaje no supervisado es estudiar las similitudes/disimilitudes que hay entre los datos y, por ejemplo, obtener una separación o agrupación de los mismos (e.g. separación de especies en imágenes de animales sin conocer el animal concreto).
+ 
+Entre las principales aplicaciones del aprendizaje no supervisado se encuentran las siguientes:
+\vspace{-4px}
+\begin{enumerate}
+    \item \textbf{Agrupamiento (Clustering)}: Divide los datos en grupos. Los ejemplos de un grupo tendrán cierta similitud entre ellos, mientras que todos los ejemplos de ese grupo serán disimilares a los de otro grupo (y por eso se genera esa división). Algunos algoritmos necesitan conocer de antemano el número de grupos en los que dividir lo datos, otros son capaces de descubrir cuántos grupos existen~\cite{salim:usl}. En la figura \ref{fig:figuras/Clustering.jpg} puede verse un ejemplo de agrupamiento.
+    \item \textbf{Reducción de la dimensionalidad}: Los conjuntos de datos generalmente tiene un número bastante grande de características. Esto hace que los algoritmos de aprendizaje sean más lentos. La reducción de dimensionalidad hace referencia a la reducción de número de características tratando de no perder información al hacerlo.
+    Según ~\cite{javatpoint:reduccionsdims} se denomina como una forma de convertir conjuntos de datos de alta dimensionalidad en conjunto de datos de menor dimensionalidad, pero garantizando que proporciona información similar.
+    
+    Algunos ejemplos concretos de reducción de dimensionalidad son:
+    \begin{itemize}
+        \item Análisis de Componentes Principales (PCA).
+        \item Cuantificación vectorial.
+        \item \textit{Autoencoders}.
+    \end{itemize}
+\end{enumerate}
+
+\imagenconurl{figuras/Clustering.jpg}{Clusters}{\footnotesize{\emph{Clusters}. A la izquierda los datos sin agrupar y a la derecha los datos coloreados según la pertenencia a los distintos grupos. By
+hellisp - Own work, Public Domain,
+\url{https://commons.wikimedia.org/w/index.php?curid=36929773}. }}{0.7} 
+
+\subsection{Aprendizaje semi-supervisado}
+\label{aprendizaje-semi-supervisado}
+
+Según~\cite{vanEngelen2020}, el aprendizaje semi-supervisado es la rama del
+aprendizaje automático que utiliza tanto datos etiquetados como no etiquetados 
+durante el entrenamiento. Es por esto que se dice que está a medio camino entre 
+el aprendizaje supervisado y el no supervisado. Como se ha comentado, el problema
+al que todos los algoritmos se enfrentan en la realidad es a la escasez de datos 
+etiquetados, pues es un proceso costoso. Gracias a la naturaleza del semi-supervisado,
+hace que sea una buena aproximación para esos casos. Por lo general, suele aplicarse 
+en problemas de clasificación.
+
+\subsubsection{Suposiciones}
+\label{suposiciones}
+¿Y por qué utilizar aprendizaje semi-supervisado? Lo cierto es que algunos
+de los algoritmos existentes de aprendizaje supervisado funcionan bastante bien
+incluso con pocos datos etiquetados. Sin embargo, los datos no etiquetados podrían
+aprovecharse para mejorar el rendimiento.
+
+El objetivo, por tanto, del aprendizaje semi-supervisado será obtener clasificadores
+que obtengan mejores resultados que los del aprendizaje supervisado. En~\cite{vanEngelen2020}
+se especifican unas condiciones que han de cumplirse.
+
+La primera premisa que se debe cumplir es que la distribución $p(x)$ de entrada contenga
+información sobre la distribución posterior $p(y|x)$~\cite{vanEngelen2020}.
+
+\begin{mainbox}{Smoothness assumption}
+    Probablemente, si dos ejemplos se encuentran próximos en el espacio, comparten
+    la misma etiqueta.
+\end{mainbox}
+
+\medskip
+
+\begin{mainbox}{Low-density assumption}
+    La frontera de decisión en un problema de clasificación se encontrará en una zona del espacio
+    en el que existan pocos ejemplos.
+\end{mainbox}
+
+\medskip
+
+\begin{mainbox}{Manifold assumption}
+    Los ejemplos suele encontrarse en una estructuras de dimensionalidad baja (algunas características
+    no son útiles), denominadas \emph{manifolds}. Los ejemplos que se encuentren en una misma \emph{manifold} comparten la misma etiqueta~\cite{towardsdatascience:semi,vanEngelen2020}.
+    \label{manifold}
+\end{mainbox}
+
+\medskip
+
+\begin{mainbox}{Cluster assumption}
+    Los ejemplos que se encuentren en un mismo grupo compartirán la misma etiqueta.
+\end{mainbox}
+
+
+El concepto clave de todas estas suposiciones es el de la ``similitud'' 
+(ejemplos próximos en el espacio, ejemplos en misma manifold, mismo grupo...). 
+Es por esto que la \textit{Cluster assumption} es una generalización del
+resto (o el resto son versiones de esta).
+
+Por esto, para que el \destacado{el aprendizaje semi-supervisado mejore al supervisado}
+es necesario que se cumpla dicha suposición generalizada. Si no fuese así (i.e. datos no agrupables),
+el aprendizaje semi-supervisado no mejorará al supervisado~\cite{vanEngelen2020}.
+
+En la figura~\ref{fig:figuras/AprendizajeSemiSupervisado.png} se presenta la taxonomía general del aprendizaje semi-supervisado.
+
+\imagen{figuras/AprendizajeSemiSupervisado.png}{Taxonomía de métodos semi-supervisados}{Taxonomía de métodos semi-supervisados~\cite{vanEngelen2020}.}{1}
+
+Sin pérdida de generalidad, este trabajo estará centrado en métodos semi-supervisados basados en grafos y árboles (intrínsecamente semi-supervisados) con la comparación con otros métodos enmarcados en esta taxonomía.
+
+\clearpage
+\section{Árboles de decisión (CART)}
+\label{cart}
+
+Antes de entrar en las explicaciones teóricas es conveniente indicar que existen multitud de algoritmos que permiten la creación de árboles (ID3~\cite{quinlan1986induction}, C4.5~\cite{quinlan2014c4}, C5.0~\cite{quinlan2004c5} y CART~\cite{breiman2017classification}, entre otros). El algoritmo en el que se centrará este desarrollo será CART (Classification and regression trees) para árboles de clasificación. 
+
+\paragraph{Árbol de decisión}
+
+Los árboles de decisión son clasificadores que predicen etiquetas para instancias. Para clasificar, los árboles plantean sucesivas preguntas sobre las características de los ejemplos. Cada pregunta se realiza en uno de los nodos y se ramifica hacia un hijo por cada posible respuesta \cite{kingsford2008decision}. La clasificación se completa partiendo desde la raíz del árbol y ``contestando'' a las preguntas hasta llegar a una hoja (nodo sin hijos). Las hojas tendrán asociada la clase correspondiente. 
+
+La clave de los árboles de decisión es la formulación de las preguntas, que pueden ser bastante complicadas. Por lo general serán preguntas de si/no que contendrán una comparación (<, <=, >~o =>) de una característica con un cierto valor \cite{kingsford2008decision}. El rendimiento del árbol dependerá de las preguntas que se establezcan en el proceso de entrenamiento.
+
+\paragraph{Algoritmo CART}
+El algoritmo CART permite construir árboles de decisión. Este algoritmo se centra en la selección de la mejor pregunta, o dicho de otra forma, la división del conjunto de datos en particiones. Los nodos deben ser vistos como particiones del conjunto de datos obtenidas por las sucesivas preguntas. 
+
+Aunque no se ha comentado, los nodos de los árboles de decisión podrían tener varios nodos hijos (incluso más de dos). En el caso de CART, genera árboles binarios. Es decir, las divisiones son solo en dos grupos cada vez.
+
+La construcción del árbol comienza por la raíz, donde se encuentra todo el conjunto de datos de entrenamiento. A partir de este nodo, se obtiene cuál es la mejor división. Para ello, considera todas las posibles características junto con todos los posibles valores (observados en los datos) \cite{lewis2000introduction}. El proceso continúa recursivamente hasta obtener las hojas del árbol. El algoritmo~\ref{cart} muestra el pseudocódigo simplificado de CART.
+
+\input{algoritmos/cart.tex}
+\medskip
+En la figura \ref{fig:figuras/Tree.png} puede verse el resultado de aplicar este algoritmo a un conjunto de datos particular. El conjunto de datos solo contiene dos características. Para seleccionar la pregunta del primer nodo, CART consideró ambas características y todos los valores que se observaron en el conjunto de datos hasta obtener la pregunta ``Eje X <= 11.662''.
+
+\imagen{figuras/Tree.png}{Árbol de decisión (CART)}{Árbol de decisión.}{1}
+
+La premisa de los árboles de decisión es obtener nodos puros. Es decir, nodos en los que los datos que corresponden a él son de una misma clase. Realmente no es necesaria esa perfección (eso resultaría en \textit{sobreajuste}), se busca que la clase mayoritaria en esos datos tenga una proporción mucho mayor que el resto.
+
+La pregunta ``Eje X <= 11.662'' de la raíz del ejemplo proviene de una comparación con todas las posibilidades restantes, para otros valores y para la otra característica.  La comparación se realiza mediante un \textbf{criterio de división} o función de división \cite{lewis2000introduction}. Esta función arroja una medida de la \textbf{impureza} de los grupos resultantes. Por lo que, sabiendo que lo que se quiere es maximizar la pureza, se debe minimizar la impureza.
+
+\subsection{Criterios de impureza}
+
+En este desarrollo se han considerado dos criterios distintos. Por un lado \textbf{Gini} y por otro \textbf{Entropy}. Los dos tienen el mismo objetivo.
+
+\paragraph{Gini index} La función de Gini o índice Gini se calcula a partir de un conjunto de datos $E$ y utiliza las proporciones de las clases. El objetivo es minimizar.
+
+\begin{equation}
+\text{Gini}(E) = 1 - \sum_{i=1}^{c} p_{i}^{2}
+\end{equation}
+
+Donde $p_i$ es la proporción/probabilidad de la clase $i$.\newline
+
+Tomando el ejemplo de la figura \ref{fig:figuras/Tree.png}, los coeficientes de Gini serían los de la tabla \ref{tab:ejemplo_gini}.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|l|l|l|l|l|}
+\hline
+\multicolumn{1}{|l|}{\multirow{2}{*}{Nodo}} & \multicolumn{3}{l|}{Frecuencia} & \multicolumn{3}{l|}{Proporción} & \multicolumn{1}{l|}{Gini} \\ \cline{2-8} 
+\multicolumn{1}{|l|}{}                  & Clase 1   & Clase 2  & Clase 3  & Clase 1   & Clase 2  & Clase 3  & $1 - p_{1}^{2} - p_{2}^{2} - p_{3}^{2}$                     \\ \hline
+A                 & 65        & 72       & 73       & 0.3095    & 0.3429   & 0.3476   & 0.6658                    \\ 
+B                 & 65        & 72       & 0        & 0.4745    & 0.5255   & 0        & 0.4987                    \\ 
+C                 & 0         & 0        & 73       & 0         & 0        & 1        & 0                         \\ 
+D                 & 65        & 0        & 0        & 1         & 0        & 0        & 0                         \\ 
+E                 & 0         & 72       & 0        & 0         & 1        & 0        & 0                         \\ \hline
+\end{tabular}
+\begin{tablenotes}
+\footnotesize
+\item *Truncado a 4 decimales (los cálculos sí consideran todos los decimales).
+\end{tablenotes}
+\caption{Ejemplo Gini}
+\label{tab:ejemplo_gini}
+\end{table}
+
+Ahora bien, se han calculado los coeficientes por cada nodo, sin embargo, esta información no es la que sea utiliza directamente para elegir ``Eje X <= 11.662'', si no que se utilizan los coeficientes de los dos nodos hijos generados por esa pregunta. 
+
+Volviendo a la idea principal, se quiere obtener los grupos más homogéneos (puros) con esas preguntas. Para poder hacer una estimación se calculan estos coeficientes de Gini y después se realiza una suma ponderada de los grupos resultantes según la proporción de ejemplos. 
+
+Por ejemplo, durante la construcción del árbol se evaluaron todas las posibles preguntas en el nodo A. Al llegar a ``Eje X <= 11.662'' se calcularon los índices Gini para los nodos B y C. Esa estimación de lo ``buena'' que es la división se realiza de la siguiente manera:
+\vspace{-.75cm}
+\begin{center}
+    \[\frac{137}{210} \times \text{Gini}(B) +  \frac{73}{210} \times \text{Gini}(C) = \frac{137}{210} \times 0.4987 +  \frac{73}{210} \times 0 = \frac{137}{210} \times 0.4987\] 
+\end{center}
+
+Como el nodo C es completamente puro, comparando con el resto de todas las posibles preguntas, esta es la que minimiza los cálculos de impureza.
+
+\paragraph{Entropy} El cálculo de la entropía es muy similar al de Gini, se calcula a partir de un conjunto de datos $E$ y utiliza las proporciones de las clases. El objetivo sigue siendo minimizar.
+
+\begin{equation}
+\text{Entropy}(E) = - \sum_{i=1}^{c} p_{i} \cdot \log_2(p_i)
+\end{equation}
+Donde $p_i$ es la proporción/probabilidad de la clase $i$.\newline
+
+\begin{table}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|l|l|l|l|l|l|l|l|}
+\hline
+\multicolumn{1}{|l|}{\multirow{2}{*}{Nodo}} & \multicolumn{3}{l|}{Frecuencia} & \multicolumn{3}{l|}{Proporción} & \multicolumn{1}{l|}{Entropy} \\ \cline{2-8} 
+\multicolumn{1}{|l|}{}                  & Clase 1   & Clase 2  & Clase 3  & Clase 1   & Clase 2  & Clase 3  & $- (p_1 \cdot \log_2(p_1) + p_2 \cdot \log_2(p_2) + p_3 \cdot \log_2(p_3))$                     \\ \hline
+A                 & 65        & 72       & 73       & 0.3095    & 0.3429   & 0.3476   & 1.5831                    \\ 
+B                 & 65        & 72       & 0        & 0.4745    & 0.5255   & 0        & 0.9981                    \\ 
+C                 & 0         & 0        & 73       & 0         & 0        & 1        & 0                         \\ 
+D                 & 65        & 0        & 0        & 1         & 0        & 0        & 0                         \\ 
+E                 & 0         & 72       & 0        & 0         & 1        & 0        & 0                         \\ \hline
+\end{tabular}
+}
+\begin{tablenotes}
+\footnotesize
+\item *Truncado a 4 decimales (los cálculos sí consideran todos los decimales).
+\end{tablenotes}
+\caption{Ejemplo Entropy}
+\label{tab:ejemplo_entropy}
+\end{table}
+
+De la misma forma que con Gini, el cálculo de la entropía viene acompañado de la suma ponderada. Por ejemplo, continuando con el mismo ejemplo, la suma ponderada de los nodos B y C sería:
+
+\vspace{-.75cm}
+\begin{center}
+    \[\frac{137}{210} \times \text{Entropy}(B) +  \frac{73}{210} \times \text{Entropy}(C) = \frac{137}{210} \times 0.9981 +  \frac{73}{210} \times 0 = \frac{137}{210} \times 0.9981\] 
+\end{center}
+
+Para comprobar que esta intuición de la homogeneidad funciona, en la figura \ref{fig:figuras/cart_boundaries.png} se pueden observar las fronteras de decisión para una clasificación perfecta mediante Gini y su cálculo de impureza.
+
+\imagen{figuras/cart_boundaries.png}{Fronteras de decisión (CART)}{Fronteras de decisión.}{0.8}
+
+\section{Aprendizaje semi-supervisado basado en grafos}
+
+Una variante para enfocar el aprendizaje semi-supervisado son los métodos basados en grafos (GSSL del inglés Graph-based Semi-Supervised Learning). Estos métodos resultan prometedores debido a que la construcción de estructuras de grafos tienen una relación natural con la \textit{manifold assumtion} \ref{manifold}. Cuando se construye un grafo, los nodos conectados con conexiones con pesos altos suelen tener las mismas etiquetas, lo que corresponde con esa \textit{manifold assumtion} \cite{song2022graph}.
+
+\paragraph{Grafo} Un grafo es un par $G = (V,E)$ donde V es en un conjunto de objetos llamados vértices $V = \{v_1, v_2, ...\}$ y E otro conjunto de elementos denominados aristas $E = \{e_1, e_2, ...\}$ \cite{deo2017graph}. 
+
+\imagen{figuras/Grafo.png}{Ejemplo de grafo}{Ejemplo de grafo.}{.5}
+
+En GSSL, cada ejemplo del conjunto de datos representa un vértice o nodo y estarán conectados por aristas ponderadas con un peso que representarán la similitud. En la figura \ref{fig:figuras/Grafo.png} puede verse un ejemplo de un grafo (los nodos grises representan ejemplos no etiquetados).
+
+Para la tarea del aprendizaje, los métodos GSSL se fundamentan en dos pasos:
+
+\begin{enumerate}
+    \item Construcción del grafo: Se construye el grafo que indica la similitud de los ejemplos del conjunto de entrenamiento. Tiene en cuenta tanto datos etiquetados como no etiquetados.
+    \item Inferencia de etiquetas: La información de etiquetado se propaga desde los etiquetados a los no etiquetados a partir de la información del grafo construido.
+\end{enumerate}
+
+Debido al gran alcance de los métodos GSSL se cree conveniente comentar la taxonomía propuesta en \cite{song2022graph}. Este trabajo estará centrado en los elementos resaltados de la figura \ref{fig:figuras/TaxonomiaGSSL.png}.
+
+\imagen{figuras/TaxonomiaGSSL.png}{Taxonomía GSSL}{Taxonomía GSSL, basada en \cite{song2022graph}.}{1}
+
+El tipo de método hace referencia a la capacidad de predecir cualquier nuevo ejemplo no etiquetado.
+
+Se parte de un conjunto de datos de \textbf{entrenamiento} $D = \{\{x_i,y_i\}^{n_l}_{i=1}, \{x_i\}^{n_u}_{i=l}\}$ con datos etiquetados y no etiquetados. 
+El método transductivo aprende una función $f : X \rightarrow Y$ de tal forma que $f$ pueda predecir los ejemplos no etiquetados $\{x_i\}^{n_u}_{i=l}$ (son los del conjunto de datos de entrenamiento).
+El método inductivo aprende una función $f : X \rightarrow Y$ a partir de $D$ de tal forma que $f$ pueda predecir cualquier ejemplo $x \in X$ (todo el dominio).
+
+Como se ha comentado anteriormente, la solución mediante un método GSSL consta de dos pasos. El objetivo de la construcción del grafo es obtener ese par $G = (V,E)$ con la adición de una matriz $W$ que serán los pesos de las aristas y representarán la similitud comentada. Se tienen en cuenta tres suposiciones:
+\begin{enumerate}
+    \item Grafo no dirigido, $W$ simétrica y $W_{ij} \geq 0$,  $\forall i \neq j$
+    \item $w_{ij} = 0$ significa que no hay arista entre $i$ y $j$.
+    \item Sin bucles en el grafo, $W_{ii} = 0, \forall 1 \leq i \leq n$
+\end{enumerate}
+
+Dentro de todos los posibles algoritmos de construcción de grafos, se clasifican en \textbf{no supervisados} y \textbf{supervisados}. En el caso de los primeros, no utilizan información de etiquetado. Estos son algoritmos como \textit{KNN} o \textit{b-Matching}, entre otros. Los algoritmos supervisados aprovechan la información de las etiquetas mientras se construye el grafo (manteniendo o heredando conceptos de los algoritmos no supervisados sobre vecindad). Estos últimos son los que se han implementado en este proyecto. En cuanto a la inferencia de etiquetas, este proyecto se ha centrado en la regularización de los grafos durante dicho proceso de inferencia. Uno de los paradigmas de estos algoritmos se conoce como \textit{Label Propagation} y sobre este se desarrolla uno de ellos.
+
+Ambos pasos de la solución serán convenientemente desarrollados particularmente en la sección \ref{metodologia} con la implementación de dichos algoritmos.

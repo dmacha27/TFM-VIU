@@ -1,0 +1,35 @@
+\begin{algorithm}[h]
+\label{ccp}
+\SetAlgoLined
+\caption{Cost-complexity Pruning}
+\medskip
+\begin{enumerate}
+    \item Inicialización:
+    \begin{enumerate}
+        \item Dejar que $T^1$ sea el árbol obtenido con $\alpha^1 = 0$ (árbol original).
+    \end{enumerate}
+    \item Repetir los siguientes pasos para cada $i$ hasta que $T^i$ sea la raíz:
+    \begin{enumerate}
+        \item Paso 1:
+        \begin{enumerate}
+            \item Seleccionar el nodo $t \in T^1$ que minimiza 
+            \[
+            g_1(t) = \frac{R(t) - R(T_t^1)}{|f(T_t^1)| - 1}
+            \]
+            \item Dejar que $t_1$ sea este nodo.
+            \item Dejar que $\alpha^2 = g_1(t_1)$ y $T^2 = T^1 - T_{t_1}^1$.
+        \end{enumerate}
+        \item Paso $i$:
+        \begin{enumerate}
+            \item Seleccionar el nodo $t \in T^i$ que minimiza 
+            \[
+            g_i(t) = \frac{R(t) - R(T_t^i)}{|f(T_t^i)| - 1}
+            \]
+            \item Dejar que $t_i$ sea este nodo.
+            \item Dejar que $\alpha^{i+1} = g_i(t_i)$ y $T^{i+1} = T^i - T_{t_i}^i$.
+        \end{enumerate}
+    \end{enumerate}
+    \item Devolver la secuencia de árboles $T^1 \supset T^2 \supset \ldots \supset T^k \supset \ldots \supset \{\text{raíz}\}$ y la secuencia de parámetros $\alpha^1 \leq \alpha^2 \leq \ldots \leq \alpha^k \leq \ldots$.
+    \item Seleccionar el $T^{k+1}$ árbol tal que $\alpha \in [\alpha^k, \alpha^{k+1})$. Se asume la existencia de un $\alpha^0 = 0$ que permita seleccionar $T^1$.
+\end{enumerate}
+\end{algorithm}

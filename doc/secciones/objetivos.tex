@@ -1,29 +1,27 @@
 % OBJETIVOS
 
-\cleardoublepage
-
+\newpage
 \chapter{Objetivos}
 \label{objetivos}
 
-Los algoritmos semi-supervisados suponen un área de mucha utilidad dentro del \textit{machine learning}, sin embargo, así como para otras ramas (como el aprendizaje supervisado y no supervisado) es posible encontrar numerosas bibliotecas y algoritmos bien desarrollados y probados, para el semi-supervisado todavía hay una gran cantidad de investigación que no se ha materializado (o que si lo ha hecho, no se ha publicado).
-
 \section{Objetivo general}
 
-El objetivo general del presente trabajo es realizar una revisión bibliográfica (guiada) sobre métodos de aprendizaje semi-supervisado, centrándose en los ámbitos de grafos y árboles para realizar posteriormente una implementación y validación con otros algoritmos bien afianzados en este ámbito como Self-Training o Co-Forest.
+Este proyecto es una propuesta del grupo de investigación de la Universidad de Burgos, para analizar ramas del aprendizaje semi-supervisado que no se habían contemplado hasta el momento. El objetivo general del presente trabajo es realizar una implementación y validación de algunos métodos de aprendizaje semi-supervisado, centrándose en los ámbitos de grafos y árboles y compararlos con otros algoritmos bien afianzados como RandomForest, Self-Training o Co-Forest. 
 
-\medskip
 
 \section{Objetivos específicos}
 
-Se proponen una serie de objetivos específicos que surgen a raíz de una revisión bibliográfica para evaluar los algoritmos más prometedores tanto para grafos como árboles:
-
 \begin{enumerate}[label=\destacado{\arabic*.}]
-  \setlength\itemsep{2em}
-  \item Implementación completa y desde cero de un algoritmo de construcción de árboles que permita trabajar con datos etiquetados y no etiquetados (semi-supervisado). Incluye también de la adición de algoritmos complementarios como \textit{post-pruning}.
-  \item Debido a la naturaleza de los algoritmos basados en grafos que necesitan de dos pasos separados (construcción de grafo y propagación de etiquetas), se requiere la implementación desde cero de varios algoritmos tanto de construcción de grafo como de \textit{label propagation}.
-  \item Seleccionar el/los conjuntos de datos adecuados para la experimentación de estos algoritmos, tanto los que cumplen las suposiciones del aprendizaje semi-supervisado como los que no, para una validación exhaustiva que refleje la utilización de estos algoritmos en muy diversos ámbitos. Al menos, 20 \textit{datasets}.
-  \item Codificación de experimentos adecuados para algoritmos. Previsiblemente incluirá: preprocesado de datos, codificación de validaciones cruzadas, experimentación de parámetros específicos (influencia) o graficar resultados, entre otros...
-  \item Comparación, gracias a experimentos, con algoritmos afianzados del estado del arte para la extracción de resultados y conclusiones.
+  \setlength\itemsep{0.5em}
+  \item Realizar una revisión bibliográfica (guiada\footnote{Gracias a información previa recopilada por el grupo de investigación de la Universidad de Burgos.}) para establecer los métodos más prometedores y útiles.
+  \item Implementar desde cero un algoritmo de construcción de árboles que permita trabajar con datos etiquetados y no etiquetados (semi-supervisado).
+  \item Implementar desde cero varios algoritmos de construcción de grafos y de \textit{label propagation} pues debido a la naturaleza de los algoritmos basados en grafos, necesitan de dos pasos separados (construcción de grafo y propagación de etiquetas).
+  \item Seleccionar los conjuntos de datos adecuados para la experimentación de estos algoritmos para una validación exhaustiva que refleje su utilización en muy diversos ámbitos. Al menos, 20 \textit{datasets}.
+  \item Codificar experimentos adecuados para los algoritmos. Previsiblemente incluirá: preprocesado de datos, codificación de validaciones cruzadas, experimentación de parámetros específicos (influencia) o graficar resultados, entre otros.
+  \item Comparar los algoritmos desarrollados con algoritmos afianzados del estado del arte para la extracción de resultados y conclusiones.
 \end{enumerate}
+
+En las etapas finales del proyecto, una vez analizada la información obtenida, se consideró en conjunto con el grupo de investigación de la Universidad de Burgos, crear una página web con el propósito de permitir la visualización de los algoritmos de grafos desarrollados. En el Anexo \ref{apendice-b} se muestra la documentación de la aplicación web.
+
 
 

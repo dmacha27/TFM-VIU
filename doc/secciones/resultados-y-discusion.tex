@@ -1,6 +1,187 @@
 % RESULTADOS Y DISCUSION 
 
-\cleardoublepage
-
+\newpage
 \chapter{Resultados y Discusión}
 \label{resultados-y-discusion}
+
+En esta sección se describen los resultados de la experimentación de los métodos desarrollados en la sección anterior.
+
+\section{Experimentación \textit{SSLTree}}
+\label{metodologia-experimentacion}
+
+\begin{mainbox}{Código de la experimentación}
+    Toda la codificación de los experimentos realizados puede encontrarse en \url{https://github.com/dmacha27/TFM-VIU/tree/main/metodos/SSLTree/experimentos}.
+\end{mainbox}
+
+Para comprobar su funcionamiento, se han seleccionado dos métodos con una comparación directa a \textit{SSLTree}. Estos son \textit{DecisionTreeClassifier} y \textit{SelfTrainingClassifier}, ambos implementados en la librería \textit{Scikit-Learn}.
+
+En el caso de \textit{DecisionTreeClassifier}, es un buen modelo de referencia por ser la implementación clásica de \textbf{CART} para aprendizaje \textbf{supervisado}. La idea es que \textit{SSLTree} debería ser mejor para algunos conjuntos de datos y para el resto, al menos, no introducir ruido y tener un rendimiento muy similar.
+Para el caso de \textit{SelfTrainingClassifier}, este es un \textit{wrapper method} que envuelve un modelo supervisado, que también será \textit{DecisionTreeClassifier}. Self-Training es considerado el método más sencillo del aprendizaje semi-supervisado y, aunque sea capaz de trabajar con datos no etiquetados, el modelo SSLTree debería ser mejor que él por su naturaleza intrínseca.
+
+Antes se ha analizado la importancia y la influencia que puede tener el parámetro $w$. Los métodos que se van a comparar poseen parámetros por defecto que habrán sido probados y seleccionados acordemente. Para el modelo SSLTree es necesario fijar este parámetro $w$.
+
+Podría estudiarse el parámetro $w$ por cada conjunto de datos. Sin embargo, a la hora de realizar la comparación, no sería justo. Se deberían ajustar los hiper-parámetros del resto de modelos también para cada conjunto de datos.
+
+Para una comparación justa, el estudio de $w$ se realizará para todos los datasets seleccionados y, a partir de los resultados, se seleccionará un valor que obtenga un compromiso para cada porcentaje de etiquetado. La idea es que este valor se convierta en el valor por defecto de SSLTree.
+
+\imagen{figuras/w_iris_heatmap.png}{Mapa de calor de $w$ para el dataset Iris}{Mapa de calor de $w$ para el dataset Iris.}{0.5}
+
+La figura \ref{fig:figuras/w_iris_heatmap.png} representa los resultados de la evaluación de cada posible valor de $w$ para cada proporción de etiquetados (similar a los gráficos anteriores) en forma de mapa de calor.
+
+Para elegir cual es el parámetro $w$ adecuado se han obtenido esos mapas de calor por cada conjunto de datos. A partir de esos cálculos se realiza el ranking medio por cada porcentaje de etiquetado.
+
+Pasos del ranking medio:
+
+\begin{enumerate}
+    \item Se calcula el ranking por columna (porcentaje de etiquetado) por cada conjunto de datos. Se obtendrán otras 24 matrices con dichos rankings.
+    \item Se realiza el promedio de cada celda en todos los conjuntos de datos. Por ejemplo, para el 10\% y $w = 1$ se calcula el promedio de esa posición a lo largo de las 24 matrices (conjuntos de datos).
+\end{enumerate}
+
+El resultado será el de la figura \ref{fig:figuras/w_all_rankings.png}. Un resultado muy similar con el cálculo de Gini puede encontrarse en \ref{fig:figuras/w_all_rankings_gini.png}.
+
+\imagen{figuras/w_all_rankings.png}{Mapa de calor de los rankings medios de $w$}{Mapa de calor de los rankings medios de $w$.}{0.5}
+
+La interpretación de ese resultado es que, por columnas, cada celda representa el ranking promedio que esa combinación de porcentaje y valor de $w$ ha tenido en los 24 datasets. Por ejemplo, el 30\% y $w = 0.9$, en promedio, ocupa el ranking 4.5 en todos los datasets (cuanto menor valor de ranking, mejor).
+
+Recurriendo de nuevo a un promedio es posible ver cuál es el ranking que ocupa cada valor de $w$:
+
+\begin{table}[h]
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\rowcolor[HTML]{FFCE93} 
+{\color[HTML]{333333} 1} & {\color[HTML]{333333} \textbf{.9}} & {\color[HTML]{333333} .8} & {\color[HTML]{333333} .7} & {\color[HTML]{333333} .6} & {\color[HTML]{333333} .5} & {\color[HTML]{333333} .4} & {\color[HTML]{333333} .3} & {\color[HTML]{333333} .2} & {\color[HTML]{333333} .1} & {\color[HTML]{333333} 0} \\ \hline
+5.22                     & \textbf{4.77}                      & 5.44                      & 5.72                      & 5.80                      & 6.31                      & 6.17                      & 6.59                      & 6.32                      & 6.5                       & 7.15                     \\ \hline
+\end{tabular}%
+}
+\caption{Ranking promedio de cada valor de $w$}
+\label{tab:ranking-w}
+\end{table}
+
+Con estos resultados, el mejor valor de $w$ es 0.9. Consigue, en promedio, obtener los mejores resultados en todos los porcentajes de etiquetados.\newline
+
+Continuando con la comprobación del modelo, se realiza la comparación de SSLTree con \textit{DecisionTreeClassifier} y \textit{SelfTrainingClassifier}. De nuevo, para cada conjunto de datos se ha obtenido el rendimiento (exactitud) para cada porcentaje de etiquetado (ver figura \ref{fig:figuras/comparativa_basica_yeast.png}).
+
+\imagen{figuras/comparativa_basica_yeast.png}{Comparativa en dataset Yeast}{Comparativa en dataset Yeast.}{0.7}
+
+La figura \ref{fig:figuras/comparativa_basica_yeast.png} se ha seleccionado convenientemente. Existirán conjuntos de datos en los que SSLTree sea igual o mínimamente peor cuando no se cumplan las suposiciones comentadas o no se tiene la información suficiente.
+
+Para compactar los resultados de todos los conjuntos de datos, se realiza otro ranking promedio. Es decir, para cada conjunto de datos se hace el ranking de los tres modelos por cada porcentaje y se realiza después el promedio.
+
+\imagen{figuras/comparativa_final.png}{Ranking promedio de cada modelo para todos los datasets}{Ranking promedio de cada modelo para todos los datasets.}{.95}
+
+Los resultados obtenidos\footnote{Pueden comprobarse resultados similares para Gini en \ref{fig:figuras/comparativa_final.png}.} indican que la implementación de SSLTree funciona correctamente y en general obtiene mejores resultados que el resto de modelos.
+
+Aunque empíricamente ofrezca mejores resultados, es posible que la diferencia entre los modelos no sea significativa. Si un modelo es mejor que otro por pequeñas diferencias, pueden considerarse similares.
+
+Para realizar este estudio, se obtienen los resultados de un test de Nemenyi. El test de Nemenyi permite determinar si grupos de datos (en este caso medidas de exactitud) son diferentes estadísticamente. A partir de esos resultados (p-valores), pueden representarse las diferencias críticas. Los resultados representados para la comparativa anterior pueden verse en las figuras \ref{fig:figuras/nemenyi_10_entropy.png}, \ref{fig:figuras/nemenyi_20_entropy.png}, \ref{fig:figuras/nemenyi_30_entropy.png} y \ref{fig:figuras/nemenyi_40_entropy.png}. Las líneas horizontales unen los grupos que no tienen diferencias significativas.
+
+En todas ellas, SSLTree es el mejor modelo, sin embargo, las diferencias no parecen ser significativas para considerarlo como un modelo mucho mejor que el resto.
+
+\imagen{figuras/nemenyi_10_entropy.png}{Comparativa básica: Nemenyi Test para 10\% de etiquetados}{Comparativa básica: Nemenyi Test para 10\% de etiquetados.}{1}
+
+\imagen{figuras/nemenyi_20_entropy.png}{Comparativa básica: Nemenyi Test para 20\% de etiquetados}{Comparativa básica: Nemenyi Test para 20\% de etiquetados.}{1}
+
+\imagen{figuras/nemenyi_30_entropy.png}{Comparativa básica: Nemenyi Test para 30\% de etiquetados}{Comparativa básica: Nemenyi Test para 30\% de etiquetados.}{1}
+
+\imagen{figuras/nemenyi_40_entropy.png}{Comparativa básica: Nemenyi Test para 40\% de etiquetados}{Comparativa básica: Nemenyi Test para 40\% de etiquetados.}{1}
+
+Aunque estos resultados supongan que \textit{SSLTree} no es un modelo significativamente mejor que el resto, es un resultado muy prometedor. En las conclusiones se analizará el alcance que supone disponer de un modelo basado en árboles semi-supervisado.
+
+A continuación, partiendo de que SSLTree no es un modelo peor, se va a estudiar el funcionamiento de varios \textit{ensembles}. Un \textit{ensemble} trata ponderar varios clasificadores individuales (opiniones individuales) y combinarlos para obtener un clasificador que supere a todos ellos (decisión final) \cite{rokach2010ensemble}.
+
+Para esta comparativa final se van a utilizar los siguientes \textit{ensembles}:
+
+\begin{enumerate}
+    \item Random Forest con SSLTree como estimador base. El algoritmo Random Forest genera un bosque de dichos árboles con \textit{bagging\footnote{La técnica de bagging consiste en generar subconjuntos aleatorios del conjunto de datos original para entrenar al estimador.}} y subespacios aleatorios en cada árbol (cada árbol, aleatoriamente, solo utilizará parte de las características). La implementación utilizada es propia desarrollada para este proyecto.
+    \item CoForest con SSLTree como estimador base. CoForest se puede entender como la implementación del Random Forest en el aprendizaje semi-supervisado \cite{li2007improve}. Implementación desarrollada en \textit{sslearn} por José Luis Garrido-Labrador (Universidad de Burgos) \cite{garrido2024sslearn}.
+    \item Self-Training con Random Forest como estimador base. El Random Forest, a su vez, tendrá el Decision Tree \textbf{supervisado} como estimador base.
+\end{enumerate}
+
+Al trabajar con aleatoriedad, se ha fijado una semilla para la replicabilidad de los experimentos. Todos los modelos tienen los parámetros por defecto para una comparación justa.
+
+Los resultados de la comparativa pueden visualizarse en la figura \ref{fig:figuras/comparativa_ensembles.png}. Estos resultados indican que los \textit{ensembles} con SSLTree como estimador base son peores que la versión supervisada (convertida a semi-supervisada mediante Self-Training). En la comparativa básica anterior, SSLTree sí parecía comportarse mejor que el Decision Tree supervisado (aunque sin diferencias significativas). Sin embargo, este Decision Tree, para algunos conjuntos de datos, seguía siendo mejor que el resto de modelos semi-supervisados, y para otros conjuntos, no se alejaba mucho de SSLTree a pesar de que disponer de pocos datos etiquetados. 
+
+Partiendo de esta idea y conociendo que los Random Forest (que en principio son supervisados) arrojan un rendimiento sobresaliente comparable con los mejores clasificadores (\textit{state-of-the-art accuracy} según \cite{salles2021bias} y \cite{dorador2024improving}), pueden superar a muchos de los modelos semi-supervisados solo con la porción etiquetada como ha ocurrido en este experimento.
+
+\imagen{figuras/comparativa_ensembles.png}{Ranking promedio de cada ensemble para todos los datasets}{Ranking promedio de cada ensemble para todos los datasets.}{1}
+
+De hecho, realizando un nuevo test de Nemenyi entre estos modelos, se observan diferencias significativas en 10\% y 20\% de etiquetados. Estos resultados pueden verse en las figuras \ref{fig:figuras/nemenyi_10_ensembles_entropy.png}, \ref{fig:figuras/nemenyi_20_ensembles_entropy.png}, \ref{fig:figuras/nemenyi_30_ensembles_entropy.png} y \ref{fig:figuras/nemenyi_40_ensembles_entropy.png}.
+
+\imagen{figuras/nemenyi_10_ensembles_entropy.png}{Comparativa ensembles: Nemenyi Test para 10\% de etiquetados}{Comparativa ensembles: Nemenyi Test para 10\% de etiquetados.}{1}
+
+\imagen{figuras/nemenyi_20_ensembles_entropy.png}{Comparativa ensembles: Nemenyi Test para 20\% de etiquetados}{Comparativa ensembles: Nemenyi Test para 20\% de etiquetados.}{1}
+
+\imagen{figuras/nemenyi_30_ensembles_entropy.png}{Comparativa ensembles: Nemenyi Test para 30\% de etiquetados}{Comparativa ensembles: Nemenyi Test para 30\% de etiquetados.}{1}
+
+\imagen{figuras/nemenyi_40_ensembles_entropy.png}{Comparativa ensembles: Nemenyi Test para 40\% de etiquetados}{Comparativa ensembles: Nemenyi Test para 40\% de etiquetados.}{1}
+
+\section{Experimentación GSSL}
+
+\begin{mainbox}{Código de la experimentación}
+    Toda la codificación de los experimentos realizados puede encontrarse en \url{https://github.com/dmacha27/TFM-VIU/tree/main/metodos/GSSL/experimentos}.
+\end{mainbox}
+
+Al igual que en \textit{SSLTree}, para poder realizar una comparación justa con respecto a los modelos seleccionados, es necesario fijar los hiper-parámetros de los algoritmos desarrollados. Además, quieren ser probados como una unidad, es decir, se quiere comparar RGCLI + LGC y GBILI + LGC como modelos semi-supervisados. 
+
+El algoritmo común a estos dos nuevos modelos es LGC (el algoritmo de inferencia). El primer paso será fijar el hiper-parámetro $\alpha$ que posee. Para ello se necesita tener grafos construidos y para ello se utilizarán ambos algoritmos como métodos de creación de grafos. Para GBILI, en el estudio realizado por sus autores \cite{berton2014graph}, concluyen que el \textit{accuracy} se estabiliza para un valor de $k > 10$ por lo que se ha fijado a $k = 11$. Para RGCLI, los autores \cite{berton2017rgcli} fijan el parámetro $k_e = 50$ y $k_i = 2$ para problemas de clasificación. 
+
+A partir de aquí, la experimentación consistirá en realizar un estudio del parámetro $\alpha$ de forma muy similar al parámetro $w$ en \textit{SSLTree} analizando los resultados obtenidos por ambos algoritmos.
+
+Por cada porcentaje de etiquetados, se ejecutan pruebas para valores de $\alpha$ comprendidos entre 0.1 y 0.99 (ambos incluidos) con intervalos de 0.1. Estas pruebas (basadas en validación cruzada) se realizan por cada conjunto de datos y se realiza el ranking promedio que ocupa cada combinación de porcentaje de etiquetados y posible $\alpha$ (del mismo modo que en \textit{SSLTree}). Los rankings obtenidos pueden verse en la figura \ref{fig:figuras/alpha_rankings_gbili.png-figuras/alpha_rankings_rgcli.png}.
+
+\begin{mainbox}{Conjuntos de datos utilizados}
+    Los métodos de construcción de grafos tienen un coste computacional muy alto. En estos experimentos se ha decidido obviar uno de los conjuntos de datos (se utilizarán 23 en vez de 24). El conjunto de datos en cuestión requería aproximadamente de cinco días de ejecución solo para el primer experimento más sencillo. Debido a las limitaciones temporales de este estudio, no se utilizará.
+\end{mainbox}
+
+\dosimagenes{figuras/alpha_rankings_gbili.png}{figuras/alpha_rankings_rgcli.png}{Rankings medios de $\alpha$}{Rankings medios de $\alpha$.}{0.45}
+
+Recurriendo de nuevo a un promedio es posible ver cuál es el ranking que ocupa cada valor de $\alpha$:
+
+\imagen{figuras/lgc_alpha.png}{Ranking promedio de cada valor de $\alpha$ para ambos métodos}{Ranking promedio de cada valor de $\alpha$ para ambos métodos.}{0.65}
+
+En este punto, los dos algoritmos parecen obtener los mejores resultados para distintos valores de $\alpha$, aunque bastante próximos. Para tomar una decisión de qué valor usar (si .9 o .8), se estudian las diferencias críticas existentes entre cada valor de cada algoritmos. El estudio de Nemenyi puede verse en las figuras \ref{fig:figuras/nemenyi_alpha_gbili.png} y \ref{fig:figuras/nemenyi_alpha_rgcli.png}.
+
+\imagen{figuras/nemenyi_alpha_gbili.png}{Nemenyi Test para valores de $\alpha$ en GBILI}{Nemenyi Test para valores de $\alpha$ en GBILI.}{1}
+
+\imagen{figuras/nemenyi_alpha_rgcli.png}{Nemenyi Test para valores de $\alpha$ en RGCLI}{Nemenyi Test para valores de $\alpha$ en RGCLI.}{1}
+
+El estudio no arroja un decisión clara  para seleccionar un valor u otro, podría tomarse cualquiera de los dos pues no existen diferencias críticas significativas. Sin embargo, la diferencia que existe entre .8 y .9 en GBILI es menor que la que existe en RGCLI. Si el valor seleccionado fuera .8, la penalización para RGCLI sería mayor que la que tendría GBILI si se selecciona .9. Por lo tanto, el valor seleccionado de $\alpha$ para LGC es .9.
+
+A partir de esta hiperparametrización de LGC se continúa con la comparación de estos nuevos modelos con otros relevantes. Se han seleccionado dos modelos con semejanza directa a los métodos basados en grafos. Estos son:
+
+\begin{enumerate}
+    \item Modelo \textit{k-nearest-neighbor (kNN)}. Se trata de un algoritmo que se basa en la teoría de los vecinos más cercanos, como muchos de los algoritmos basados en grafos (GBILI y RGCLI). Clasifica nuevos ejemplos considerando los $k$ vecinos más cercanos (asignando la etiqueta más común de ellos).
+    \item Self-Training con kNN como estimador base. Como se comentaba en \textit{SSLTree}, es el algoritmo más básico en la familia de los algoritmos semi-supervisados, permite convertir el estimador base (en este caso $knn$) en un algoritmo semi-supervisado.
+\end{enumerate}
+
+Por lo tanto, se realiza la comparación de GBILI + LGC, RGCLI + LGC con \textit{KNeighborsClassifier} y \textit{SelfTrainingClassifier}. Para cada conjunto de datos se ha obtenido el rendimiento (exactitud) para cada porcentaje de etiquetado, similar a lo realizado en \textit{SSLTree}. A partir de los resultados obtenidos por cada dataset, se realiza el ranking promedio. Esto es, para cada conjunto de datos, se hace el ranking de los 4 modelos en cada porcentaje. Con eso se obtendrían 23 matrices en las que cada columna representa los rankings (cada celda de la columna es el ranking que ocupa el modelo) y a continuación se realiza la media entre los 23 datasets. La información final se resume en la gráfica \ref{fig:figuras/comparativa_grafos.png}
+
+\imagen{figuras/comparativa_grafos.png}{Ranking promedio de cada modelo en cada porcentaje de etiquetados}{Ranking promedio de cada modelo en cada porcentaje de etiquetados.}{1}
+
+Los resultados indican que los mejores modelos son kNN y \textit{Self-Training}. Al igual que con \textit{SSLTree}, parece que un algoritmo supervisado obtiene mejores resultados que los semi-supervisados. Para evaluar si estos nuevos modelos son realmente peores, se evalúan de nuevo las diferencias críticas. Los test de Nemenyi pueden verse en las figuras \ref{fig:figuras/nemenyi_10_grafos.png}, \ref{fig:figuras/nemenyi_20_grafos.png}, \ref{fig:figuras/nemenyi_30_grafos.png} y \ref{fig:figuras/nemenyi_40_grafos.png}.
+
+\imagen{figuras/nemenyi_10_grafos.png}{Comparativa grafos: Nemenyi Test para 10\% de etiquetados}{Comparativa grafos: Nemenyi Test para 10\% de etiquetados.}{1}
+
+\imagen{figuras/nemenyi_20_grafos.png}{Comparativa grafos: Nemenyi Test para 20\% de etiquetados}{Comparativa grafos: Nemenyi Test para 20\% de etiquetados.}{1}
+
+\imagen{figuras/nemenyi_30_grafos.png}{Comparativa grafos: Nemenyi Test para 30\% de etiquetados}{Comparativa grafos: Nemenyi Test para 30\% de etiquetados.}{1}
+
+\imagen{figuras/nemenyi_40_grafos.png}{Comparativa grafos: Nemenyi Test para 40\% de etiquetados}{Comparativa grafos: Nemenyi Test para 40\% de etiquetados.}{1}
+
+RGCLI, como versión mejorada de GBILI es el mejor método basado en grafos. Además, GBILI tiene diferencias significativas en su rendimiento en 20\% y 40\% de etiquetados con respecto al resto. RGCLI por el contrario, no posee diferencias significativas con kNN ni con \textit{Self-Training} y puede considerarse similar. 
+
+\section{Discusión}
+
+Los resultados del proyecto se encuentran resumidos en las figuras \ref{fig:figuras/comparativa_final.png}, \ref{fig:figuras/comparativa_ensembles.png}  y \ref{fig:figuras/comparativa_grafos.png} (correspondencia con los objetivos 2, 5 y 6). \textit{SSLTree} como nuevo método basado en la teoría de \cite{levatic2017semi} parecía un método bastante prometedor por su naturaleza intrínseca. Comparado individualmente con otros métodos parece comportarse algo mejor (aunque sin diferencias significativas). En el caso de los ensembles, \textit{SSLTree} no parece ser buen estimador base. Algo muy similar ocurre con los métodos basados en grafos (correspondencia con los objetivos 3, 5 y 6). Por su parte RGCLI como método de construcción produce resultados similares (no significativamente inferiores) al resto de métodos después de la inferencia (LGC).
+
+Con este proyecto, estos algoritmos se han enfrentado a una cantidad suficiente de conjuntos de datos que permite evaluarlos en multitud de situaciones. La obtención de buenos resultados si se supone otra experimentación en la que se hayan podido seleccionar conjuntos de datos que sí cumplen las suposiciones del aprendizaje semi-supervisado no tendrían un valor sustancial. El número de conjuntos de datos que cumplen dichas suposiciones en el mundo real (que es el objetivo del desarrollo del \textit{machine learning}) es muy reducido en comparación al resto. Una experimentación de ese estilo adulteraría el rendimiento real de los algoritmos.
+
+Algo paradójico de esta experimentación es que, los algoritmos supervisados (y sus variantes en \textit{ensembles}) se comportan mejor que los algoritmos semi-supervisados, incluso con algoritmos afianzados como \textit{Self-Training}. Solo \textit{SSLTree} parece ser comparable individualmente. Lo previsible era que aunque no se cumplieran las suposiciones para ningún conjunto de datos, aun así pudieran aprovechar algo más los datos no etiquetados. Esta situación lleva a considerar la utilidad real del aprendizaje semi-supervisado.
+
+Concretamente acerca de los métodos basados en grafos, la principal cuestión a la que se quería dar respuesta es si es justificable el uso de esta rama algorítmica con respecto a algoritmos más tradicionales. En este marco, y para las configuraciones probadas, los métodos basados en grafos no parecen una mejor opción que el resto.
+
+Por el contrario, la posible utilidad de \textit{SSLTree} va más allá de su uso individual (que parece comportarse algo mejor). La disponibilidad de un método intrínsecamente semi-supervisado que además esté basado en árboles de decisión puede ser de gran utilidad en el desarrollo de otros algoritmos. De hecho, \textit{SSLTree} está siendo utilizado por el grupo de investigación de la Universidad de Burgos para desarrollar un \textit{Rotation Forest} semi-supervisado al utilizarlo como estimador base.
+
+Aún con las distintas cuestiones comentadas, este proyecto pone a disposición de otros desarrolladores e investigadores un nuevo algoritmo basado en árboles de decisión e implementaciones públicas de los métodos basados en grafos.
+

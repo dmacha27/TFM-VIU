@@ -1,13 +1,44 @@
 % CONCLUSIONES
 
+\newpage
 \chapter{Conclusiones}
 \label{conclusiones}
 
+En este apartado se comentarán las conclusiones extraídas a partir del desarrollo y experimentación de los métodos implementados. Aunque en primer lugar, las conclusiones generales de los objetivos marcados se resumen en las siguientes:
+
 \begin{enumerate}[label=\destacado{\arabic*.}]
   \setlength\itemsep{1em}
-  \item Conclusión 1.
+  
+  \item Gracias a la información recopilada previamente y a nueva documentación bibliográfica buscada, se establecieron las líneas investigación del proyecto (objetivo 1).
+  \item Se ha implementado un nuevo modelo basado en árboles, \textit{SSLTree}, así como tres algoritmos basados en grafos \Gls{gbili}, \Gls{rgcli} y \Gls{lgc} (objetivos 2 y 3).
+  \item Se ha generado una experimentación exhaustiva para todos los métodos desarrollados con respecto a métodos clásicos y con comparación directa (objetivos 4, 5 y 6). Toda la codificación de los experimentos es pública a través del repositorio del proyecto (\href{https://github.com/dmacha27/TFM-VIU}{Github}).
+  \item Se ha creado una aplicación Web para la visualización y aprendizaje interactivo de los métodos basados en grafos desarrollados en el proyecto (objetivo adicional).
 
-  \item Conclusión 2.
+\end{enumerate}
 
-  \item Conclusión 3.
+En cuanto a \textit{SSLTree}:
+
+\begin{enumerate}[label=\destacado{\arabic*.}]
+  \setlength\itemsep{1em}
+    \setcounter{enumi}{4}
+  \item \textit{SSLTree} es competitivo. Los resultados obtenidos de la comparativa de \textit{SSLTree} con el resto de modelos (no \textit{ensembles}) indicaron que es mejor empíricamente (aunque sin diferencias significativas). 
+
+  \item Debido a la primera conclusión (\textit{SSLTree} parece mejor). La teoría en \cite{levatic2017semi} y concretamente el parámetro $w$, resulta beneficioso al aplicarse a un árbol de decisión tipo \Gls{cart}. Al haberse comparado con una implementación CART supervisada, cuando aparecen datos no etiquetados y se aplica \textit{SSLTree}, se obtienen mejores resultados.
+
+  \item Resulta ser el peor estimador base al aplicarlo a \textit{ensembles}.
+
+  \item Aplicar un algoritmo de poda (post-poda) puede mejorar los resultados del modelo para el contexto concreto.
+
+\end{enumerate}
+
+En cuanto a los métodos basados en grafos, se utilizaron algoritmos ya encontrados en la literatura:
+
+\begin{enumerate}[label=\destacado{\arabic*.}]
+  \setlength\itemsep{1em}
+  \setcounter{enumi}{8}
+  \item Tanto la combinación GBILI + LGC como RGCLI + LGC son peores empíricamente con respecto al resto de modelos. RGCLI no presenta diferencias significativas y podría considerarse similar. Sin embargo, no es justificable el uso de estos métodos con respecto al resto.
+
+  \item Los algoritmos de construcción de grafos tienen un alto coste computacional y esto hace que si el conjunto de datos crece, aunque sea relativamente poco, el tiempo de ejecución del modelo completo (+ LGC) sea desorbitado.
+  
+  \item RGCLI consigue mejores resultados en clasificación con el mismo método de inferencia. Esto demuestra que el método de construcción de grafos influye directamente en la inferencia/clasificación.
 \end{enumerate}

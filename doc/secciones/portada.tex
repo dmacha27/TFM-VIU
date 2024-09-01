@@ -1,3 +1,77 @@
 %%%% Incluye la portada oficial%%%%
 %% Archivo portada.docx
-\includepdf[pages={1}]{figuras/Portada.pdf}
+%\includepdf[pages={1}]{figuras/Portada.pdf}
+\newcommand{\TITLE}{Implementación y comparativa de métodos semi-supervisados}
+%\newcommand{\SUBTITLE}{}
+\newcommand{\SUBJECT}{Trabajo Fin de Máster}
+\newcommand{\CAREER}{Máster Universitario en Inteligencia Artificial}
+\newcommand{\CURSO}{2023-2024}
+\newcommand{\AUTHORNAMEUNO}{David Martínez Acha}
+\newcommand{\DNI}{71310644H}
+\newcommand{\DIRECTORA}{Irma Sanabria}
+\newcommand{\TUTORES}{Álvar Arnaiz \& César Ignacio García}
+\newcommand{\CONV}{Septiembre 2024}
+
+\begin{titlepage}
+\begin{center}
+    \centering
+
+    \vspace*{0cm}
+
+    \includegraphics[scale=3.2]{figuras/Logo_VIU.png}
+
+    \vspace*{0.5cm}
+
+    \textsc{\large \CAREER} \\
+    \textsc{\large \SUBJECT} \\
+    
+    \vspace*{3cm}
+
+    \par\noindent\rule{\textwidth}{0.4pt}
+    \vspace*{0cm}
+
+    \huge{\bfseries \TITLE} \\
+    %\textsc{\large \SUBTITLE} \\
+
+    \par\noindent\rule{\textwidth}{0.4pt}
+
+    \vspace*{1.25cm}
+    
+    \includegraphics[scale=0.5]{figuras/UBU.png}
+
+\end{center}
+
+\newcolumntype{N}{!{\color{orange}\vrule width 4pt}}
+
+\begin{figure}[b]
+    \centering
+    \begin{tabular}{Np{0.3\linewidth}N p{0.3\linewidth}N p{0.3\linewidth}}
+        \begin{minipage}[t]{\linewidth}
+            \raggedright
+            \textsc{\large \textbf{Titulación}:}\\
+            {\large \CAREER}\\
+            \vspace{0.2cm}
+            \textsc{\large \textbf{Curso académico}:}\\
+            {\large \CURSO}\\
+            \vspace{0.2cm}
+            \textsc{\large \textbf{Convocatoria}:}\\
+            {\large \CONV}\\
+        \end{minipage} &
+        \begin{minipage}[t]{\linewidth}
+            \raggedright
+            \textsc{\large \textbf{Alumno}:}
+            \AUTHORNAMEUNO\\
+            \vspace{0.73cm}
+            \textsc{\large \textbf{D.N.I}:} \DNI\\
+        \end{minipage} &
+        \begin{minipage}[t]{\linewidth}
+            \raggedright
+            \textsc{\large \textbf{Directora}: \DIRECTORA}\\
+            \vspace{0.73cm}
+            \textsc{\large \textbf{Tutores UBU}: \TUTORES}\\
+        \end{minipage} \\
+    \end{tabular}
+\end{figure}
+
+
+\end{titlepage}

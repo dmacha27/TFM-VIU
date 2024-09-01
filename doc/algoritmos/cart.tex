@@ -1,0 +1,14 @@
+\begin{algorithm}[h]
+\label{cart}
+\caption{Algoritmo CART simplificado}
+\SetAlgoLined
+\medskip
+\begin{enumerate}
+    \item Crear la raíz del árbol con los datos $E$.
+    \item Si se cumple un criterio de parada, devolver la raíz (sin subárboles).
+    \item Encontrar la mejor división de $E$ en dos grupos $E_{izq}$ y $E_{der}$.
+    \item Asignar el subárbol izquierdo llamando recursivamente al algoritmo CART con los datos $E_{izq}$.
+    \item Asignar el subárbol derecho llamando recursivamente al algoritmo CART con los datos $E_{der}$.
+    \item Devolver la raíz.
+\end{enumerate}
+\end{algorithm}

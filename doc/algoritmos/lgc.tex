@@ -1,0 +1,10 @@
+\begin{algorithm}[h]
+\label{lgc}
+    \caption{Local and Global Consistency}
+    \begin{algorithmic}[1]
+            \STATE Construir la matriz de similitud $W$.
+            \STATE Construir la matriz $S = D^{-1/2}WD^{-1/2}$ donde $D$ es una matriz diagonal con su elemento $(i,i)$ igual a la suma de la fila $i$-ésima de $W$.
+            \STATE Iterar $F(t+1) = \alpha SF(t) + (1-\alpha)Y$ hasta la convergencia, donde $\alpha$ es un parámetro en $(0, 1)$.
+            \STATE Asumir un $F^*$ como el límite de la secuencia $\{F(t)\}$. Etiquetar cada punto $x_i$ con etiqueta $y_i = \arg \max_{j \leq c} F^*_{ij}$.
+    \end{algorithmic}
+\end{algorithm}

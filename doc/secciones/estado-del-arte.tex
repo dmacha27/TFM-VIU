@@ -1,0 +1,70 @@
+\chapter{Estado del arte}
+\label{estado-arte}
+
+En este apartado se comenta la revisión bibliográfica realizada. Es conveniente señalar que, debido a la naturaleza de este proyecto (en colaboración con la Universidad de Burgos y con ciertos objetivos pre-fijados), se parte de una bibliografía acotada para los métodos de árboles y también de una revisión sistemática sobre los métodos del \Gls{gssl}.
+
+\section{Árboles de decisión en aprendizaje semi-supervisado}
+
+Debido a la versatilidad, interpretabilidad y las múltiples ventajas que ofrecen los árboles de decisión, su uso se ha extendido a numerosos dominios de aplicación.
+
+En \cite{kemp2003semi} se propone el \textit{Tree-Based Bayesian (TBB)} que asume la existencia de un árbol construido con la ayuda de los datos no etiquetados. La idea principal de la teoría bayesiana es calcular la probabilidad de que un dato sea positivo (en dominios binarios, aunque indican que es generalizable a multiclase). Se define un conjunto de hipótesis, cada una representa una asignación de clase a todo el conjunto de datos (para cada ejemplo). Dicha probabilidad (positiva) se calcula como la suma de todas las probabilidades de todas las hipótesis consistentes (consistentes con las etiquetas conocidas) que lo clasifican como positivo entre la suma total de las probabilidades de todas las hipótesis consistentes (sin limitar si es positivo o negativo). También introducen el concepto de las mutaciones, que resultan en un cambio aleatorio (con base en un ratio) de la etiqueta de un nodo del árbol. Estas mutaciones permiten introducir otro enfoque denominado \textit{Tree Nearest Neighbor (TNN)} para etiquetar según el nodo más cercano.
+
+Otras propuestas como \cite{leistner2009semi} aplican conceptos de semi-supervisado como el \textit{self-learning} en el que se crea un \textit{Random Forest} (conjunto de árboles de decisión). Este método utiliza un proceso iterativo junto al \textit{out-of-bag-error} para detectar si los ejemplos no etiquetados podrían mejorar la clasificación. Durante el entrenamiento, cada uno de los árboles de decisión es reentrenado con ejemplos pseudo-etiquetados (obtenidos por el conocimiento de la iteración previa). De hecho, si el \textit{out-of-bag-error} del \textit{Random Forest} final es mayor que el obtenido con solo los ejemplos etiquetados, se retorna este último. Otra perspectiva en esta línea es \cite{fazakis2017self}, que aplica este mismo \textit{self-learning} al \textit{Rotation Forest} \cite{rodriguez2006rotation} (miembro del grupo de investigación de la Universidad de Burgos), que es una evolución de los \textit{Random Forest} y considerado como estado del arte. Del mismo modo, el \textit{Rotation Forest} es entrenado a partir de los ejemplos etiquetados y, mediante un proceso iterativo, se reentrena con nuevas instancias pseudo-etiquetadas.
+
+Continuando con \textit{self-learning}, en \cite{tanha2017semi} se aplica directamente a un árbol de decisión individual. Muy parecido al algoritmo denominado \textit{Self-Training}, utiliza los ejemplos pseudo-etiquetados con mayor confianza para re-entrenar. Los árboles de decisión suelen calcular probabilidades de etiqueta en función de la distribución de las clases en las hojas pero esto no mejora el rendimiento. En cambio, además del \textit{self-training}, también proponen el uso de \textit{Laplacian correction} para estimaciones más fiables y \textit{no-pruning} que evita precisamente el subajuste en conjuntos de datos pequeños.
+
+Es en \cite{levatic2017semi} en el que aparece un método de \textbf{construcción} de un árbol semi-supervisado. El propio árbol es capaz de manejar los datos no etiquetados sin necesidad de procesos iterativos que los incorporan. La propia construcción del árbol aprovecha los datos no etiquetados. Esto lo realiza incorporando la variabilidad de las características a la componente de impureza en las etiquetas (generalmente el coeficiente de \textit{gini}). La premisa es que grupos con poca variabilidad tendrán etiquetas similares. Los mismos autores en \cite{levatic2018semi} extienden este enfoque a los problemas de \textit{multi-target regression} (se predicen varios valores continuos por cada ejemplo).
+
+\section{GSSL (Graph-based semi-supervised learning)}
+
+Como punto de partida, en \cite{chong2020graph} se realizó una revisión del estado del arte en GSSL. Sin embargo, como se indica en \cite{song2022graph}, la primera revisión no establecía relaciones entre los métodos, incluían modelos basados en redes neuronales que no estaban basados en grafos y además, no establecen un marco general.
+
+En \cite{song2022graph} se ha encontrado la mejor y más actualizada revisión del panorama GSSL que además establece una nueva taxonomía para estos métodos. Dicha taxonomía propone una división de todos los métodos en dos pasos: construcción de grafo e inferencia de etiquetas.
+
+\subsection{Construcción del grafo}
+
+Es el primer paso crucial para los métodos GSSL, el objetivo es representar los ejemplos como nodos y las aristas con ciertos pesos representando la similitud entre ellos. En la literatura existen varios algoritmos divididos según el uso o no de la información de etiquetas. 
+
+En el caso de los no supervisados, aparecen los basados en \Gls{knn} que conectan de forma voraz un nodo con sus $k$ vecinos más cercanos (en base a una métrica de distancia). Aparecen otros métodos basados en $\epsilon$-\textit{neighborhood} en los que solo se conectan dos nodos si la distancias entre ellos es menor a $\epsilon$. Incluso otros que aprovechan KNN en combinación con los vecinos mutuos de tal forma que dos nodos están unidos si son mutuamente vecinos cercanos \cite{ozaki2011using}. Esto último nace debido a que los \textit{hubs} o vértices con un gran número de aristas que llegan a él (grado) empeoran el \textit{accuracy} en tareas de clasificación. Aparece también otro tipo de métodos similar a KNN conocido como \textit{b-Matching} que aborda el problema de los grados de los vértices limitando que cada nodo solo pueda tener exactamente $b$ vecinos.
+
+Para los métodos supervisados en los que se quiere utilizar la información de etiquetado, aparecen estudios como en \cite{dhillon2010learning} para estudiar dicha posibilidad. Con base en estos estudios, aparecen GBILI \cite{berton2014graph} como primera versión y RGCLI \cite{berton2017rgcli} como continuación de los mismos autores que permiten mejorar el \textit{accuracy} en clasificación.
+
+\subsection{Inferencia de etiquetas}
+
+Este paso es el más importante en las tareas de clasificación, pues permite obtener las etiquetas de ejemplos no etiquetados.
+
+\subsubsection{Graph regularization}
+
+El objetivo de la \textit{regularización de grafos} es encontrar una función $f$ que permita obtener etiquetas para ejemplos. Esta función busca cumplir dos objetivos: la función debe estar lo más cerca posible a las etiquetas conocidas y debe variar suavemente en todo el grafo construido (la intuición es que nodos que se consideran similares tendrán la misma etiqueta hasta que cierta disimilitud haga cambiar esta predicción). Para lograr esto, estos métodos toman como base una función de pérdida compuesta por la pérdida supervisada (para intentar cumplir ese primer objetivo) y la pérdida de regularización (para el segundo objetivo).
+
+
+Como primera familia de métodos de regularización se encuentra \textbf{\textit{Label Propagation}}. Parte del grafo construido en el paso anterior, donde algunos vértices corresponden con ejemplos etiquetados y a continuación propagan este ''conocimiento`` a los ejemplos no etiquetados a partir de la similitud. Existen dos aproximaciones principales \cite{song2022graph}:
+\begin{enumerate}
+    \item \textit{Gaussian random fields}: En GRF se parte de una función de energía (que resulta ser la función de pérdidas) que intenta asegurar que nodos muy similares (aristas pesadas) tendrán las mismas etiquetas \cite{zhu2003semi}.
+    \item \textit{Local and global consistency (LGC)}: LGC extiende GRF a problemas multiclase para poder ser aplicado a más problemas y además añade alguna relajación en cuanto a la restricción de mismas etiquetas si dos nodos son muy similares (de esta forma puede ajustarse mejor al ruido de las etiquetas) e incluso penalizan la etiqueta de un nodo cuando su grado es demasiado grande (en comparación con el resto, en grafos irregulares) \cite{zhou2003learning}.
+\end{enumerate}
+
+Otros métodos son los de \textit{Directed regularization}, que permiten trabajar con grafos dirigidos de tal forma que se tenga en cuenta la direccionalidad de las aristas en la función de pérdidas como se propone en \cite{zhou2005learning}, que introduce un \textit{random walk} para obtener una distribución de probabilidad (probabilidad de llegar a un nodo en un grafo dirigido) y se incorpora en la función de pérdidas. 
+
+A partir de estos métodos aparecen otros cuya teoría aborda otros paradigmas como \textit{Manifold regularization} que combina la teoría de grafos espectral con \textit{manifold learning} (una forma de reducción de dimensionalidad no lineal) \cite{belkin2006manifold}, \textit{Label Prediction via Deformed Graph Laplacian (LPDGL} que partiendo de \textit{Label propagation} y \textit{Directed regularization} incluye un término de suavidad \cite{gong2015deformed}, y por último, el \textit{Poisson learning} que nace de la idea de lidiar con tasas de etiquetado muy bajas \cite{calder2020poisson}.
+
+\subsubsection{Graph embedding}
+
+La idea de \textit{Graph embedding} es construir representaciones de los grafos con menor dimensionalidad. Se trabaja a nivel de nodo, codificando dichos nodos como vectores en menor dimensión pero manteniendo posición y vecindad. La aproximación general es la de \textit{encoder-decoder}. El \textit{encoder} se encarga de transformar los nodos en vectores. El \textit{decorder} se encarga de reconstruir la información original. El objetivo es que la reconstrucción sea lo mejor posible (pues el \textit{encoder} estará realizando una reducción fiable).
+
+\subsubsection{Shallow graph embedding}
+
+Como su nombre indica, son métodos más simples (menos profundos) en los que se distinguen métodos basados en factorización como \textit{Locally linear embedding (LLE)} donde el \textit{embedding} resulta ser la combinación lineal de los nodos de la vecindad \cite{roweis2000nonlinear}. También \textit{Laplacian eigenmaps} en los que se asegura que nodos muy cercanos también estarán cerca en el nuevo espacio \cite{belkin2001laplacian} y \textit{Graph factorization} que emplea la matriz de adyacencia (los pesos de las aristas) \cite{ahmed2013distributed} entre otros. También existe otra familia basada en \textit{random-walks} como \textit{DeepWalk} que está basado en el modelo \textit{skip-gram} \cite{perozzi2014deepwalk}. Este tipo de \textit{embedding} tiene la problemática principal de no utilizar las características de los nodos.
+
+\subsubsection{Deep graph embedding}
+
+En \textit{Deep graph embedding} se emplean redes neuronales para aprender esas representaciones comentadas. En este caso sí que utiliza tanto la estructura del grafo como las características. Existe una familia de métodos basados en \textit{Autoencoder} y otros basados en redes neuronales de grafos (\textit{Graph Neuronal networks}).
+
+\section{Líneas de investigación seleccionadas}
+
+En el caso de los árboles, los trabajos más interesantes desde el punto de vista de la utilidad e implementación son aquellos que proponen métodos de construcción de árboles semi-supervisado. Se ha seleccionado el trabajo realizado en \cite{levatic2017semi} para clasificación. En este, no se propone una implementación explícita de un algoritmo, pero los conceptos comentados permiten desarrollar uno propio. El método que sus autores implementaron a raíz de los conceptos parece no ser accesible. La intención, por tanto, es crear una implementación basada en los conceptos propuestos, que sea accesible y bien probada en diferentes ámbitos. Además, el resultado de este trabajo (un árbol intrínsecamente semi-supervisado) permite ser utilizando en otros proyectos del grupo de investigación de la Universidad de Burgos, como por ejemplo, el intento de crear un Rotation Forest semi-supervisado sin utilizar \textit{self-training} u otros enfoques.
+
+Para el caso de los métodos GSSL, se han seleccionado ciertos métodos/algoritmos: \textit{Graph-based
+on informativeness of labeled instances (GBILI)}, \textit{Robust Graph that Considers Labeled Instances (RGCLI)} y \textit{Local and global consistency (LGC)}. El principal motivo de su elección es la disponibilidad de \textit{software} desarrollado y probado a disposición de la comunidad. Tanto para GBILI y RGCLI en \cite{song2022graph} se realiza una búsqueda de los algoritmos implementados pero parece no existir implementaciones \textit{open-source} de ambos algoritmos. LGC resulta ser el método más general y extendido que propagación de etiquetas, es el punto de partida para comparar estos algoritmos entre ellos y con otros modelos.
+
+Por otro lado, en los artículos de GBILI \cite{berton2014graph} y RGCLI \cite{berton2017rgcli} se realizan experimentaciones con relativamente pocos conjuntos de datos. Además, se desconoce si han sido seleccionados convenientemente de tal forma que puedan alterar/beneficiar los resultados (debido al cumplimiento de las suposiciones \ref{suposiciones}). Con este proyecto se pretende aplicar ambos algoritmos en una mayor variedad de dominios (i.e múltiples conjuntos de datos). Además, la comparación con otros modelos no se realiza contra otros modelos bien establecidos y eficaces en el aprendizaje semi-supervisado como para justificar el uso de estos algoritmos (y no otros no basados en grafos). En este proyecto también se comparará con dichos otros modelos.

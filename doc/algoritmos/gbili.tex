@@ -1,0 +1,43 @@
+\begin{algorithm}[h]
+\label{gbili}
+\caption{GBILI}
+\begin{algorithmic}[1]
+\STATE generar una matriz de distancias $D$
+\STATE generar una lista de puntos etiquetados $L$
+\STATE establecer el parámetro $K$
+\FOR{$i = 1; i < |V|; i++$}
+    \FOR{$k = 1; k < K; k++$}
+        \FOR{$j = 1; j < |V|; j++$}
+            \IF{$D(v_i, v_j)$ es el k-ésimo vecino más cercano}
+                \STATE Guardar $v_j$ en la Lista-kNN($v_i$)
+            \ENDIF
+        \ENDFOR
+    \ENDFOR
+    \FOR{$j = 1; j < \text{Lista-kNN}(v_i); j++$}
+        \FOR{$k = 1; k < K; k++$}
+            \IF{$D(v_j, v_i)$ es el k-ésimo vecino más cercano}
+                \STATE Guardar $v_i$ en la M-kNN($v_j$)
+            \ENDIF
+        \ENDFOR
+    \ENDFOR
+    \FOR{$j = 1; j < \text{M-kNN}(v_i); j++$}
+        \FOR{$l = 1; l < |L|; l++$}
+            \IF{$D(v_i, v_j) + D(v_j, v_l)$ es mínimo}
+                \STATE Guardar $e_{ij}$ en $G$
+            \ENDIF
+        \ENDFOR
+    \ENDFOR
+\ENDFOR
+\STATE Realizar BFS y devolver Componente($G$)
+\FOR{$i = 1; i < |V|; i++$}
+    \IF{Componente($v_i$) $\not\in L$}
+        \FOR{$k = 1; k < \text{Lista-kNN}(v_i); k++$}
+            \IF{Componente($v_k$) $\in L$}
+                \STATE Guardar $e_{ik}$ en $G$
+            \ENDIF
+        \ENDFOR
+    \ENDIF
+\ENDFOR
+\STATE devolver $G$
+\end{algorithmic}
+\end{algorithm}

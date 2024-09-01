@@ -2,5 +2,296 @@
 
 \cleardoublepage
 
-\chapter{Metodología}
+\chapter{Metodología y Desarrollo}
 \label{metodologia}
+
+En este aparatado se exponen todas las decisiones tomadas para el desarrollo de los algoritmos seleccionados. En las primeras secciones se comentan las decisiones generales que afectan a los algoritmos y a continuación, se desarrollan los algoritmos seleccionados.
+
+\section{Datasets utilizados}
+
+Debido a la naturaleza de este estudio semi-supervisado, los conjuntos de datos típicos que suelen utilizarse no son válidos. La mayor parte de ellos están preparados para el aprendizaje supervisado, donde todos los datos tienen etiquetas.
+
+Una posibilidad es utilizar esos conjuntos de datos ``supervisados'' y des-etiquetar manualmente los datos para realizar el estudio. Sin embargo, existe una herramienta open-source denominada Keel (Knowledge Extraction based on Evolutionary Learning)~\cite{derrac2015keel} en la que, además de la propia herramienta, sus autores incorporaron una serie de datasets semi-supervisados públicos\footnote{Es posible acceder a ellos desde la web de la Universidad de Granada: \url{https://sci2s.ugr.es/keel/datasets.php}}. Es decir, varios conjuntos de datos con algún dato etiquetado y el resto no etiquetados.
+
+El formato que han propuesto es crear cuatro proporciones de etiquetados: 10\%, 20\%, 30\% y 40\%. Se asume que estas proporciones son las de interés puesto que el aprendizaje semi-supervisado surge con la idea de lidiar con \textbf{pocos} datos etiquetados. A partir de estas proporciones los métodos supervisados serán ya suficientemente buenos.
+
+Además del trabajo del etiquetado, por cada uno de los datasets, incorporaron la división en \textit{Folds} para la validación cruzada de los métodos. La validación cruzada permitirá controlar la ``aleatoriedad'' de los experimentos de cara a extraer conclusiones reales. Con solo la extracción del rendimiento en una sola ejecución no sería posible extraer resultados válidos.
+
+Para la experimentación se han seleccionado 24 datasets de Keel, cantidad suficiente para poder extraer conclusiones genéricas y encontrando un compromiso entre el tiempo de ejecución y la efectividad de la experimentación. Los datasets no han sido modificados, aunque sí que ha sido necesario un pequeño preprocesado corrigiendo ``errores'' de formato.
+
+\newpage
+\section{Árbol intrínsecamente semi-supervisado (SSLTree)}
+
+En la figura~\ref{fig:figuras/AprendizajeSemiSupervisado.png} se comentaba una taxonomía de los algoritmos semi-supervisados. La implementación que se desarrolla a continuación, al no poder se enmarcada en ninguna otra categoría, se trata de un método intrínsecamente semi-supervisado, que por otro lado coincide perfectamente con la definición que se da en~\cite{vanEngelen2020}.
+
+Un método intrínsecamente semi-supervisado es aquel que no utiliza pasos intermedios utilizando otros algoritmos supervisados. Por ejemplo, el bien conocido Self-Training (\textit{wrapper method}) opera mediante un bucle continuo en el que un algoritmo supervisado es entrenado, predice etiquetas para los no etiquetados y se reentrena con estas. Generalmente, los intrínsecamente semi-supervisados son modificaciones de algoritmos supervisados para poder trabajar con datos no etiquetados en su operación.
+
+Partiendo de esta definición, la idea de este árbol con nombre \textit{SSLTree} (Semi-Supervised Learning Tree) parte de la teoría comentada en~\ref{cart} en la que se construían árboles de decisión de forma supervisada para clasificación (regresión también aunque no se considera en este desarrollo).
+
+Para realizar una implementación que siga el pseudocódigo de CART y que además permita trabajar con datos no etiquetados es necesario incorporar, de algún modo, el conocimiento que puede proporcionar dichos datos. En otras palabras, los datos no etiquetados puede contener relaciones interesantes que permitan construir árboles más puros (mejores) que simplemente utilizando datos etiquetados.
+
+Para incorporar estos datos no etiquetados, no es necesario modificar la estructura de los árboles que se generan. En la construcción de los árboles, el único momento donde se trabaja con los datos es en la ramificación de un nodo. Utilizando medidas de impureza como \textit{gini} o \textit{entropy} se obtiene una estimación de lo buena que puede ser una de esas divisiones realizadas (cuanto menor valor de estas medidas, más homogéneas son las ramas generadas). Debido a esto, parece tener sentido encontrar alguna forma de incorporar los datos no etiquetados en estas medidas. De hecho, la implementación realizada del algoritmo CART para aprendizaje semi-supervisado no dista mucho del algoritmo original para supervisado. 
+
+Durante la revisión bibliográfica se encontraron numerosos artículos que abordaban los árboles semi-supervisados con diferentes aproximaciones. Sin embargo, y como se buscaba, en el artículo~\cite{levatic2017semi} proponen un cálculo de impureza \textbf{genérico} que incorpora en sus cálculos los datos no etiquetados.
+
+\subsection{Cálculo de impureza modificado}
+
+A partir de este punto, se considera que los datos contienen dos ejes. Tradicionalmente, los árboles se construyen solo considerando el primero de los ejes, el del espacio de etiquetas (\textit{target space}). Adicionalmente para este nuevo cálculo de impureza, se añade el eje de las características o atributos (\textit{descriptive space}).
+
+Los autores~\cite{levatic2017semi} proponen el nuevo cálculo considerando la \textbf{homogeneidad} de esas ramas generadas en base a estos dos ejes. La idea de la homogeneidad proviene del \textit{Predictive Clustering} (PC), que considera a los árboles de decisiones como una jerarquía de \textit{clusters}. Por ejemplo, la raíz del árbol es un grupo con todos los datos de entrenamiento, y cuando se crean las dos ramificaciones de la raíz, se generan dos nuevos grupos. Lo que se busca es que estos nuevos grupos sean lo más homogéneos posibles. En aprendizaje supervisado esto suponía que ese grupo contenga la mayor parte de etiquetas de una misma clase.
+
+El objetivo de este desarrollo será aplicar ese cálculo de impureza que se aplicó a los árboles del \textit{Predictive Clustering} para el algoritmo de CART y estudiar su posible efecto beneficioso.
+\linebreak \\
+El cálculo de la impureza para aprendizaje supervisado para un conjunto de datos $E$\footnote{$Y$ es la variable de etiquetas.} es (se utiliza Gini para ser fiel a la literatura, pero podrían utilizarse otras medidas):
+
+\begin{equation}
+\text{Impurity}(E) = \text{Gini}(E, Y)
+\end{equation}
+
+El primer paso para modificar este cálculo es considerar que $E$ ahora contiene datos no etiquetados, esto es: $E = E_l \cup E_u$ donde $E_l$ es la parte de los datos con etiquetas y $E_u$ es la parte de los datos sin etiquetas.
+
+El segundo paso es modificar el cálculo de esa función \textit{Impurity}. Será una suma ponderada de dos impurezas (la del eje de etiquetas y la del eje de características):
+
+\begin{equation}
+\text{Impurity}_{\text{SSL}}(E) = 
+\underbrace{w \cdot \text{Impurity}(E_l, Y)}_{\textit{Target space}} + 
+\underbrace{\frac{1 - w}{D} \cdot \sum_{i=1}^{D} \text{Impurity}(E, X_i)}_{\textit{Descriptive space}}
+\end{equation}
+
+Donde $E = E_l \cup E_u$, $D$ es el número de atributos (en datos tabulares, el número de columnas), $X_i$ es la i-ésima característica (columna) y $w \in [0, 1]$ es un parámetro que controla el peso de cada ``eje''.
+
+Donde cada función se descompone como:
+
+\begin{equation}
+\text{Impurity}(E_l, Y) = \frac{\text{Gini}(E_l, Y)}{\text{Gini}(E^{\text{train}}_{l}, Y)}
+\end{equation}
+
+\begin{equation}
+\text{Impurity}(E, X_i) = \frac{\text{Var}(E, X_i)}{\text{Var}(E_{\text{train}}, X_i)}
+\label{eq:impurity-var}
+\end{equation}
+
+La variabilidad se calcula como:
+
+\begin{equation}
+\text{Var}(E, X_i) = 
+\frac{\sum_{j=1}^{N} (x^j_i)^2 - \frac{1}{N} \cdot (\sum_{j=1}^{N} x^j_i)^2}{N}
+\end{equation}
+
+Es importante aclarar que cuando se hace referencia a $E^{train}$, representa todo el conjunto de entrenamiento. A diferencia de $E$, que representa el conjunto de datos del nodo en el que se está calculando la medida.
+
+La idea es que los denominadores que tienen $E^{train}$ sirvan como normalización para que ambos términos contribuyan de igual manera (Gini podría dar valores mucho más grandes o pequeños que las variabilidades, o viceversa). Es decir, los cálculos con $E^{train}$ serán cálculos para todo el conjunto de datos.
+
+Es conveniente aclarar que aunque en ciertos conjuntos de datos las características sean categóricas, la implementación realizada de CART solo admite características numéricas, esto supone también una simplificación en el cálculo de la ecuación \ref{eq:impurity-var}. En el artículo original \cite{levatic2017semi} la ecuación \ref{eq:impurity-var} se calcula de distinta forma si las características son nominales. En este trabajo, esto no se ha considerado.
+
+El parámetro $w$ resulta ser el más importante en todo el cálculo. Controla la cantidad de supervisión del método. Es decir, controla cuánto se tiene en cuenta la parte de las etiquetas contra la parte de las características. Con $w = 1$ sería como si el árbol fuera completamente supervisado, con $w = 0$ sería como si fuera completamente no supervisado. La clave está en encontrar un valor para $w$ que pueda tener en cuenta las etiquetas pero incorporar también el ``conocimiento'' que proporciona la variabilidad de las características.
+
+\subsection{Intuición del nuevo cálculo}
+
+Antes de estudiar la influencia del parámetro $w$ se pretende explicar el nuevo término de la variabilidad.
+
+\imagen{figuras/variabilidad.png}{Suposición de la variabilidad}{Suposición de la variabilidad. No representa un ejemplo real, solo es ilustrativo.}{1}
+
+Como se ha comentado, el uso de la impureza mediante Gini o Shannon pretende minimizar su cálculo para conseguir mayor homogeneidad (por eso se denomina impureza, lo que interesa es la pureza). Este cálculo se realiza considerando la proporción de las etiquetas en la división de los datos. Aquella partición que de un menor valor, será la decisión tomada en el nodo concreto.
+
+Para considerar los datos no etiquetados, obviamente no se puede utilizar esas funciones de impureza, hay que, de alguna forma, extraer información de su variabilidad. 
+
+La intuición de este término es que, si existe una variabilidad ``grande'' en las características, es de suponer que si los datos fueran etiquetados, las proporciones de las etiquetas serían más bien parecidas (no homogéneas). Es decir, algo como el gráfico de la izquierda en la figura~\ref{fig:figuras/variabilidad.png}, donde las etiquetas parecen tener una proporción muy similar.
+
+Por el contrario, si la variabilidad de las características es menor, es previsible que las etiquetas que tienen esos datos sean más homogéneas. Algo parecido al gráfico de la derecha en la figura~\ref{fig:figuras/variabilidad.png}. Esto es porque \textbf{datos similares en las características} tienden a tener las \textbf{mismas etiquetas} (muy relacionado con las suposiciones en~\ref{suposiciones}).
+
+Como se ha comentado, esto solo es una suposición (al igual que las del aprendizaje semi-supervisado) y por lo tanto no se cumplirá en todos los casos. Podría ocurrir algo similar a la figura~\ref{fig:figuras/variabilidadextraña.png}, donde claramente hay poca homogeneidad y la clasificación no sería buena.
+
+\imagen{figuras/variabilidadextraña.png}{Incumplimiento de la suposición de la variabilidad}{Incumplimiento de la suposición de la variabilidad.}{0.6}
+
+En definitiva, se intenta conseguir la homogeneidad en las etiquetas conocidas y en las características. Aunando ambas aportaciones se ha demostrado que es posible mejorar el rendimiento de métodos supervisados. Se verá reflejado en la experimentación.
+
+\begin{mainbox}{Criterio supervisado utilizado}
+    En la implementación de SSLTree se han incluido tanto Gini como Entropy. Sin embargo, para esta documentación se ha elegido arbitrariamente hacer referencia al cálculo mediante Entropy. Los resultados obtenidos, además de muy similares, derivan en las mismas conclusiones. Algunos de los experimentos con Gini se añadirán, por completitud, en el anexo \ref{resultados-experimentación}.
+
+    Por lo tanto, a partir de este apartado, las experimentaciones contendrán gráficos obtenidos al utilizar Entropy como criterio.
+\end{mainbox}
+
+\subsection{Influencia del parámetro $w$}
+
+El parámetro $w$ es el que proporciona la importancia a cada eje del nuevo cálculo. Siguiendo la suposición comentada en el apartado anterior, el método resulta muy dependiente del caso concreto con el que se trabaja. Es posible que tener más en cuenta la variabilidad que las etiquetas sea mejor, o viceversa.
+
+Se realiza un estudio exhaustivo para todos los conjuntos de datos, donde se verá la influencia de este parámetro. Para este análisis se ha obtenido el rendimiento (\textit{accuracy}) del modelo para cada conjunto de datos y para cada posible valor de $w$ entre 0 y 1, con pasos de 0.1.\newline
+
+\dosimagenes{figuras/w_wine.png}{figuras/w_wine_conjunto.png}{Ejemplo del efecto de $w$ en el dataset Wine}{Ejemplo del efecto de $w$ en el dataset Wine.}{1}
+
+Con independencia del criterio utilizado, es muy claro que dependiendo del valor de $w$, el comportamiento del modelo se ve alterado. Esto es precisamente lo que se está buscando, si los gráficos fueran planos o con poca alteración, no se podría evaluar el efecto.
+
+\imagen{figuras/w_tae_conjunto.png}{Ejemplo del efecto de $w$ en el dataset Tae}{Ejemplo del efecto de $w$ en el dataset Tae.}{1}
+
+En esta última imagen \ref{fig:figuras/w_tae_conjunto.png} es mucho más interesante ver que, si se quisiera aplicar el modelo a este conjunto de datos, se podrían seleccionar varios valores de $w$. Quizás sería interesante aplicar un valor $w = 0.3$ si se conoce que hay muy pocos datos etiquetados (10\%) o $w = 0.1$ si hay más. Lo importante es que se obtienen mejores resultados (en general) para valores menores que $w = 1$, lo que indica que si se aplica un modelo supervisado (i.e $w = 1$), sería peor (no en todos los casos y bajo las suposiciones del semi-supervisado).
+
+En definitiva, estos resultados indican dos conclusiones:
+
+\begin{itemize}
+    \item El parámetro $w$ es dependiente del conjunto de datos.
+    \item El parámetro $w$ es beneficioso y \textbf{podría} mejorar el rendimiento del modelo.
+\end{itemize}
+
+
+\subsection{Post-poda del árbol}
+
+El concepto de poda, por su nombre, consiste en eliminar subárboles del árbol original convirtiendo la raíz de ese subárbol en una hoja.
+
+La motivación de implementar un algoritmo de poda es que en \cite{mingers1989empirical} se realiza un estudio comparativo de métodos de poda para árboles de decisión. La conclusión del estudio fue que aplicar la poda \textbf{puede} mejorar el \textit{accuracy} hasta en un 25\%. Por lo que, aplicar la poda a un árbol permite, en algunos casos, mejorar su rendimiento. 
+
+Al igual que el parámetro $w$, en toda la experimentación posterior en \ref{metodologia-experimentacion} no se aplica el algoritmo de post-poda a ningún árbol (y por esta razón se encuentra en este apartado). Sería una situación injusta para el resto de modelos con los que se compara.
+
+Para \textit{SSLTree} se ha implementado un algoritmo de post-poda conocido como \textit{Cost-Complexity Pruning} de \cite{gordon1984classification}.
+
+En \textit{cost-Complexity pruning} se desea optimizar la función \textit{cost-complexity}:
+
+\begin{equation}
+R_\alpha(T) = R(T) + \alpha \cdot |f(T)|
+\end{equation}
+
+donde $R(T)$ es el error de entrenamiento \ref{eq:R(T)}, $f(T)$ devuelve el conjunto de hojas del árbol T y $\alpha$ es el parámetro de regularización (hiper-parámetro fijado).
+
+\begin{equation}
+\label{eq:R(T)}
+R(T) = \sum_{t\in f(T)}r(t) \cdot p(t) = \sum_{t\in f(T)}R(t)
+\end{equation}
+
+\begin{center}
+    \[
+        \sum_{t\in f(T)}R(t) \textit{ es la suma de los errores de clasificación en cada hoja}
+    \]
+    \[
+        r(t) = 1 - \max_k p(C_k \mid t) \textit{ error de clasificación}
+    \]
+    \[
+        p(t) = \frac{n(t)}{n} \textit{ n(t) es el número de ejemplos en el nodo t y n el total de ejemplos}
+    \]
+\end{center}    
+
+Para entender el funcionamiento de este algoritmo se supone un árbol original $T$ y un subárbol de él $T_t$ ($t$ es un nodo de $T$).
+La variación de la función \textit{cost-complexity} del árbol resultante de podar $T$ por $T_t$ (es decir, $T - T_t$) es:
+
+\vspace{-2.5em}
+\begin{center}
+    \[
+        R_\alpha(T - T_t) - R_\alpha(T)    
+    \]
+\end{center}
+
+Como la función \textit{cost-complexity} tiene en cuenta el error (\textit{cost}) y la complejidad (número de hojas), lo que interesa es que la variación sea negativa. Es decir, pasar de un árbol más complejo y errático a otro mejor. El parámetro $\alpha$ es el punto de comparación para determinar si un árbol podado es mejor.
+
+Al desarrollar la ecuación \ref{eq:R(T)} con el árbol podado, la variación queda delimitada por un $\alpha'$ (no es el parámetro original):
+\vspace{-2.5em}
+\begin{center}
+    \[
+        R_\alpha(T - T_t) - R_\alpha(T) = R(T - T_t) - R(T) + \alpha(|f(T - T_t)| - |f(T)|) = R(t) - R(T_t) + \alpha(1 - |f(T_t)|) 
+    \]
+
+    \[
+        \alpha' = \frac{R(t) - R(T_t)}{|f(T_t)| - 1}
+    \]
+\end{center}
+
+Los valores de dicha variación son:
+
+\begin{itemize}
+    \item Nula si $\alpha = \alpha'$
+    \item Negativa si $\alpha < \alpha'$
+    \item Positiva si $\alpha > \alpha'$
+\end{itemize}
+
+Dado un $\alpha$, un árbol original $T$ y un árbol podado $T - T_t$, al calcular $\alpha'$ mostrará si ese nuevo árbol es menos complejo y errático que el original. Se puede entender cómo si se trabajara en términos relativos de $\alpha$. Para otro valor de $\alpha$ como hiper-parámetro, un árbol que antes era mejor, podría ser peor, o viceversa.
+
+El algoritmo~\ref{ccp}  muestra el proceso de generación de las posibles podas y la selección del mejor árbol podado según el hiperparámetro $\alpha$. Se trata de una interpretación de la explicación teórica de ML Wiki\footnote{Creada por Alexey Grigorev, puede accederse desde \url{http://mlwiki.org/index.php/Cost-Complexity_Pruning}}. En la figura \ref{fig:figuras/pruning.png} puede verse el efecto beneficioso al aplicarse el algoritmo de post-poda en el dataset Breast Cancer para los distintos valores de $\alpha$ que el algoritmo evaluó. Encontrando el valor $\alpha$ adecuado pueden obtenerse mejores resultados en el test al reducir el sobreajuste del modelo.
+
+\input{algoritmos/ccp.tex}
+
+\imagen{figuras/pruning.png}{Beneficio de la post-poda en SSLTree para el dataset Breast Cancer}{Beneficio de la post-poda en SSLTree para el dataset Breast Cancer.}{0.85}
+
+\newpage
+\section{Grafos semi-supervisados}
+
+\subsection{GBILI (Graph-based on informativeness of labeled instances)}
+\label{teoria-gbili}
+
+Los métodos de construcción de grafos suelen ser, por lo general, no supervisados. Esto hace que solo se utilice la información de similitud (como lo hace el algoritmo kNN o derivados). Sin embargo, los autores de \Gls{gbili} \cite{berton2014graph} parten del hecho de que utilizar la información de las etiquetas puede mejorar el grafo construido (i.e el proceso de inferencia posterior).
+
+El algoritmo GBILI construye grafos no dirigidos y se basa en ciertas premisas. En primer lugar, las conexiones están influenciadas por los \textit{k vecinos más cercanos mutuos}, es decir, para un punto $a$, un vecino más cercano $b$ es mutuo si además de ser uno de lo k más cercanos, $a$ también es un k vecino más cercano de $b$. Esto previene juntar subgrafos que sean de diferentes grupos.
+
+\begin{equation}
+\text{kNN-Mutuo: } b \in \text{kNN}(a) \land a \in \text{kNN}(b)
+\label{eq:mutualknn}
+\end{equation}
+
+La otra premisa es que las conexiones también están influenciadas por las etiquetas de los vértices. Esto prioriza que se formen conexiones entre vértices cercanos a un punto etiquetado. Para ello se minimiza la ecuación \ref{eq:informativeness}. 
+
+\begin{equation}
+\min \sum_{i} \sum_{j} \left( D_{ij} + \sum_{l} D_{jl} \right)
+\label{eq:informativeness}
+\end{equation}
+
+La intuición de la ecuación \ref{eq:informativeness} es comparar distintos puntos $i$ y $j$ de tal forma que si la distancia entre ellos, junto a la distancia de ese $j$ a un punto etiquetado es mínima, entonces habrá una conexión $i-j$ para que $i$ aproveche la información del etiquetado a través de $j$. Con estas dos premisas, todo el proceso puede verse en el pseudocódigo \ref{gbili}.
+
+\input{algoritmos/gbili}
+
+En las líneas 5 a 8 se obtienen los vecinos más cercanos de cada vértice (nodo). A continuación, en las líneas 9 a 12 se obtienen los vecinos más cercanos mutuos (ver \ref{eq:mutualknn}). 
+En la líneas 12 a 16 se minimiza la ecuación \ref{eq:informativeness} conectando vecinos que estén cerca de puntos etiquetados. Este paso genera componentes en el grafo, que, o tiene algún ejemplo etiquetado o ninguno. En este último caso, no se puede aprovechar la información cercana de ejemplos etiquetados.
+En la línea 17 se localizan esos componentes mediante una búsqueda en anchura en el grafo construido a partir del paso anterior. En las líneas 18 a 22 se conectan esas componentes aisladas que no tienen un ejemplo etiquetado con otra componente que sí lo tenga, para ello también se utilizan los vecinos más cercanos (no se unen aleatoriamente, siempre se utilizan nodos cercanos).
+
+\subsection{RGCLI (Robust Graph that Considers Labeled Instances)}
+\label{teoria-rgcli}
+
+Los métodos semi-supervisados se benefician de las suposiciones de clúster y \textit{manifold} pues generalizan todas las demás. Estas indicaban que aquellos puntos que estén cerca, que pertenezcan al mismo grupo, clúster o \textit{manifold}, tendrán la misma etiqueta. En el caso de GBILI, aunque era prometedor, sus autores no consiguieron demostrar que se ajustara a las suposiciones comentadas. \Gls{rgcli} \cite{berton2017rgcli} supone una mejora de GBILI con la que sus autores demuestran que cumple con las suposiciones. 
+
+Un método tradicional de kNN podría cumplir la suposición local de puntos que estén cerca, pero para un valor grande de $k$ enlazaría con puntos que pertenecen a otros grupos. RGCLI utiliza los vecinos más cercanos mutuos para establecer conexiones. Estos vecinos se seleccionan por su cercanía a puntos etiquetados y como también se limita el número de conexiones a unas pocas (fijadas por parámetro), permite cumplir las suposiciones establecidas. En el pseudocódigo \ref{rgcli} puede verse el proceso completo.
+
+\input{algoritmos/rgcli.tex}
+
+Primero se inicializan las variables que almacenan la información del grafo y de vecindad. RGCLI se basa en dos procedimientos de búsqueda:
+\begin{itemize}
+    \item \textit{SearchKNN}: Se establecen los $k_e$ vecinos más cercanos de todos los puntos así como el más lejano y el más cercano etiquetado.
+    \item \textit{SearchRGCLI}: Con la información de vecindad obtenida, este paso crea el grafo final. Para ello minimiza una puntuación o \textit{score} de los enlaces. Para generar un posible enlace se consideran los vecinos más cercanos (j) de cada vértice (i). 
+La idea más interesante es la condición impuesta para considerar un posible enlace. Se evalúa si la distancia ente (i) y (j) es menor que la de (j) con el más lejano de (j). De esta forma es improbable crear enlaces con puntos lejanos. Si se cumple esta condición, se calcula su puntuación como la suma de distancias de (i) con (j) y (j) con su vecino más cercano etiquetado. Una vez considerados todos los vecinos cercanos (j) de (i), se almacenan los $k_i$ enlaces con menor puntuación\footnote{Como la puntuación está basada en la distancia, cuanto menor puntuación, más prometedor podría ser un enlace.} (y se continúa con el siguiente vértice).
+\end{itemize}
+
+\subsection{LGC (Local and Global Consistency)}
+\label{teoria-lgc}
+
+Como se ha comentado, el aprendizaje semi-supervisado se basa en dos suposiciones clave: puntos cercanos tendrán la misma etiqueta, y puntos que pertenezcan al mismo clúster o \textit{manifold}, también. En el primer caso la suposición es local y en el segundo es global. La primera de las suposiciones es fácil de cumplir y muchos algoritmos supervisados lo consiguen (como kNN). El método \Gls{lgc} \cite{zhou2003learning} trata de propagar las etiquetas de forma iterativa a los vecinos de forma suave, es decir, sin cambios bruscos (entre dos puntos cercanos no debería haber un cambio de etiqueta) para cumplir las suposiciones local y global al mismo tiempo.
+
+Se parte de un conjunto de datos $\mathcal{X} = \{x_1, \ldots, x_l, x_{l+1}, \ldots, x_n\} \subseteq \mathbb{R}^m$ y un conjunto de etiquetas $\mathcal{L}$ = \{1, \ldots, c\}. Los $l$ primeros puntos $x_i$ ($i \leq l$) tienen etiquetas $y_i \in \mathcal{L}$ y el resto de puntos $x_u (l+1 \leq u \leq n)$ no tienen etiquetas.
+
+Existe un conjunto $\mathcal{F}$ de matrices $n \times c$. Una matriz $F = [F^T_1, \ldots, F^T_n]^T \in \mathcal{F}$ es la clasificación de un conjunto de datos $\mathcal{X}$ tomando como $y_i = arg\,max_{j \leq c} F_{ij}$. Es decir, $F$ se puede entender como una función $\mathcal{X} \xrightarrow{} \mathbb{R}^c$ que para un $x_i$ devuelve un vector $F_i$.
+
+$Y \in \mathcal{F}$ también será un matriz del mismo estilo en el si $Y_{ij} = 1$ entonces $x_i$ tiene etiqueta $y_i = j$ y $Y_{ij} = 0$ en caso contrario. 
+
+Como ejemplificación de lo anterior, en la tabla \ref{matriz-etiquetado} se puede ver un ejemplo de una matriz $M \in \mathcal{F}$. Por ejemplo, si se quiere conocer la etiqueta de $x_3$, se retornaría un vector $[0,0,1]$. Su etiqueta sería $y_i = j = 2$ pues la posición $M_{32} = 1$ (la etiqueta es obtenida con el $arg\,max_{j \leq c} M_{ij}$). 
+
+Con estas definiciones, en el pseudocódigo \ref{lgc} se puede ver el proceso iterativo de inferencia.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+     & \textbf{j = 0} & \textbf{j = 1} & \textbf{j = 2} \\ \hline
+$\mathbf{x_0}$ & 0               & 1               & 0               \\ \hline
+$\mathbf{x_1}$ & 1               & 0               & 0               \\ \hline
+$\mathbf{x_2}$ & 0               & 1               & 0               \\ \hline
+$\mathbf{x_3}$ & 0               & 0               & 1               \\ \hline
+\end{tabular}
+\label{matriz-etiquetado}
+\caption{Ejemplo de una matriz de etiquetado.}
+\end{table}
+
+
+\input{algoritmos/lgc.tex}
+
+El primer paso es construir la matriz de afinidad, que generalmente se construye como $W_{ij} = exp(-||x_i - x_j||^2/2\sigma^2)$ si $i \neq j$ y $W_{ii} = 0$. Sin embargo, los métodos de construcción de grafos generalmente suelen establecer, sin pérdida de generalidad, que si existe un enlace entre $i$ y $j$ entonces $W_{ij} = 1$ (y $W_{ji} = 1$) simplemente.
+
+En el siguiente paso, esta matriz $W$ es normalizada de forma simétrica pues el método diseñado lo requiere para converger.
+
+En el tercer paso ocurre el proceso iterativo. Este consiste en utilizar la información de los vecinos (término $\alpha SF(t)$) e información inicial (término $(1 - \alpha)Y$). El parámetro $\alpha$ determina la cantidad de información que se tiene en cuenta de cada término.
+
+Al final del proceso iterativo (límite de la secuencia realizada), se obtiene una matriz similar a la de la tabla \ref{matriz-etiquetado} que permite realizar el etiquetado de los $x_u$ (no etiquetados), aunque en realidad el proceso se realiza para todos los $x \in \mathcal{X}$.
+

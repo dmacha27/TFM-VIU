@@ -1,0 +1,50 @@
+\begin{algorithm}[h]
+\label{rgcli}
+    \caption{RGCLI}
+    \begin{algorithmic}[1]
+        \STATE \textbf{Input:} número de vecinos más cercanos $k_e$, número de vecinos RGCLI $k_i$, lista de ejemplos etiquetados $L$, conjunto de datos $X$, número de hilos $nt$
+        \STATE \textbf{Output:} $GL$
+        \STATE $V \leftarrow \text{crear un conjunto de vértices a partir de } X$
+        \STATE $E, W \leftarrow \emptyset$
+        \STATE $GL \leftarrow (V, E, W)$
+        \STATE $kdtree \leftarrow \text{crear un Kd-tree a partir de } X$
+        \STATE $kNN \leftarrow \text{dict}$
+        \STATE $\mathcal{F} \leftarrow \text{dict}$
+        \STATE $\mathcal{L} \leftarrow \text{dict}$
+        \STATE $\mathcal{T} \leftarrow \{T_i : \cup_{i=1}^{nt} T_i = V, \cap_{i=1}^{nt} T_i = \emptyset \}$
+        \FOR{$T_i \in \mathcal{T}$}
+            \STATE $t \leftarrow \text{Thread}(\text{SearchKNN}(T_i, k_e, kdtree, kNN, \mathcal{L}))$
+            \STATE $t.\text{start()}$
+        \ENDFOR
+        \FOR{$T_i \in \mathcal{T}$}
+            \STATE $t \leftarrow \text{Thread}(\text{SearchRGCLI}(GL, T_i, k_i, kNN, \mathcal{L}))$
+            \STATE $t.\text{start}()$
+        \ENDFOR
+        
+        \STATE \textbf{Procedure} \text{SearchKNN}($T$, $k_e$, $kdtree$, $kNN$, $\mathcal{L}$)
+        \begin{ALC@g}
+           \FOR{vértice $v_i \in T$}
+            \STATE $kNN[v_i] \leftarrow \text{kdtree.query}(v_i, k_e)$
+            \STATE $\mathcal{L}[v_i] \leftarrow \text{encontrar puntos etiquetados más cercanos en } \mathcal{L}$
+            \STATE $\mathcal{F}[v_i] \leftarrow \text{encontrar el k-ésimo vecino más lejano de } v_i$
+        \ENDFOR
+        \end{ALC@g}
+        \STATE \textbf{End Procedure}
+        \STATE \textbf{Procedure} \text{SearchRGCLI}($GL$, $T$, $k_i$, $kNN$, $\mathcal{L}$)
+        \begin{ALC@g}
+          \FOR{vértice $v_i \in T$}
+            \STATE $\mathcal{E} \leftarrow \text{dict}$
+            \FOR{vértice $v_j \in kNN[v_i]$}
+                \IF{$\text{dist}(v_i, v_j) \leq \text{dist}(v_j, \mathcal{F}[v_j])$}
+                    \STATE $e \leftarrow (v_i, v_j)$
+                    \STATE $\mathcal{E}[e] \leftarrow \text{dist}(v_i, v_j) + \text{dist}(v_j, \mathcal{L}[v_j])$
+                \ENDIF
+            \ENDFOR
+            \STATE $E^* \leftarrow \text{obtener } k_i \text{ aristas con menor puntuación de } \mathcal{E}$
+            \STATE $E \leftarrow E^* \cup E$
+            \STATE $w(e) \leftarrow 1 \quad \forall \, e = (v_i, v_j) \in E^*$
+        \ENDFOR
+        \end{ALC@g}
+        \STATE \textbf{End Procedure}
+    \end{algorithmic}
+\end{algorithm}

@@ -33,8 +33,8 @@
 \usepackage{newtxmath}
 \usepackage{stmaryrd}
 \usepackage{bbold}
-\usepackage[ruled,vlined]{algorithm2e}
-\usepackage{algorithmic}
+\usepackage[linesnumbered,ruled,vlined]{algorithm2e}
+\usepackage[noend]{algorithmic}
 \usepackage{float}
 \usepackage{url}
 \usepackage{xspace}
@@ -47,6 +47,12 @@
 \usepackage{placeins}
 \usepackage{flafter}
 \usepackage{pdfpages}
+\usepackage{threeparttable}
+\usepackage{tikz}
+
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{colortbl}
 
 \usepackage{tcolorbox}
 \tcbset {
@@ -136,6 +142,16 @@
 	\FloatBarrier
 }
 
+\newcommand{\dosimagenes}[5]{
+	\begin{figure}[!ht]
+		\centering
+		\includegraphics[width=#5\textwidth]{#1}
+		\includegraphics[width=#5\textwidth]{#2}
+		\caption[#3]{\textbf{#4}}\label{fig:#1-#2}
+	\end{figure}
+	\FloatBarrier
+}
+
 \newcommand{\imagenconurl}[4]{
 	\begin{figure}[!ht]
 		\centering
@@ -160,6 +176,7 @@
 \usepackage{hypernat}
 \setcitestyle{authoryear}
 
+\usepackage{xurl}
 \usepackage[pdftex,plainpages=false,pdfpagelabels]{hyperref}
 
 \hypersetup{
@@ -182,12 +199,11 @@
 
 \begin{document}
 
-\input{secciones/portada.tex}
+\includepdf{secciones/portada.pdf}
 \input{secciones/frase-favorita.tex}
 
 \pagenumbering{gobble}
 \input{secciones/agradecimientos.tex}
-\cleardoublepage
 
 \newpage
 \pagenumbering{roman}
@@ -220,29 +236,51 @@
 
 \input{secciones/resumen.tex}
 \input{secciones/introduccion.tex}
+\input{secciones/estado-del-arte.tex}
+\input{secciones/marco-teorico.tex}
 \input{secciones/objetivos.tex}
 \input{secciones/metodologia.tex}
 \input{secciones/resultados-y-discusion.tex}
 \input{secciones/conclusiones.tex}
 \input{secciones/limitaciones-y-futuro.tex}
 
-\cleardoublepage
+\newpage
 \phantomsection
 
 \printglossary[type=\acronymtype]
 \printglossary
 
-\appendix
-\input{secciones/apendizes.tex}
-
 \begin{singlespace}
 \begin{footnotesize}
 \begin{twocolumn}
 \bibdata{bibliografia}
+\renewcommand\bibname{Referencias Bibliográficas}
 \bibliography{bibliografia}
-\addcontentsline{toc}{chapter}{Bibliografía}
+\addcontentsline{toc}{chapter}{Referencias Bibliográficas}
 \end{twocolumn}
 \end{footnotesize}
 \end{singlespace}
+
+\onecolumn
+\appendix
+\input{secciones/apendizes.tex}
+
+\newpage
+
+\chapter*{Universidad de Burgos}
+\begin{figure}[h!]
+    \centering
+    \begin{minipage}{0.4\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figuras/UBU.png}
+    \end{minipage}%
+    \hfill
+    \begin{minipage}{0.55\textwidth}
+        \raggedright
+        Proyecto parcialmente tutorizado por la \textbf{Universidad de Burgos}.\\
+        Tutores UBU: Álvar Arnaiz González y César Ignacio García Osorio.
+    \end{minipage}
+\end{figure}
+
 
 \end{document}
